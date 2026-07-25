@@ -7,9 +7,11 @@
     "url": "https://github.com/lumine-code/language-sofistik/issues"
   },
   "keywords": [
-    "SOFiSTiK",
-    "CADINP",
-    "language"
+    "cadinp",
+    "structural",
+    "fem",
+    "dat",
+    "finite-element"
   ],
   "version": "1.0.0",
   "license": "MIT",
