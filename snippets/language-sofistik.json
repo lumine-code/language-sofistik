@@ -1,0 +1,9 @@
+{
+  ".source.sofistik": {
+    "prog": {
+      "prefix": "prog",
+      "description": "PROG block with HEAD",
+      "body": "prog ${1}\nhead ${2}\n${3}\nend"
+    }
+  }
+}

@@ -1,251 +1,36 @@
 # language-sofistik
 
-Syntax highlighting for SOFiSTiK structural analysis software. Provides grammar for input files with multi-version keyword support and programmatic API.
+Syntax highlighting for SOFiSTiK structural analysis software. Provides grammars for input and output files with multi-version keyword support and a programmatic keywords service.
 
 ## Features
 
-- **Syntax highlighting**: Complete support for `.dat`, `.gra`, `.grb`, `.results` files.
-- **RAW file support**: Grammar for output files `.erg`, `.lst`, `.prt`, `.urs`.
-- **Multi-version**: Keywords for SOFiSTiK versions 2018-2026.
+- **Grammars**: provides TextMate grammars.
+- **Syntax highlighting**: complete support for `.dat`, `.gra`, `.grb` and `.results` input files.
+- **RAW file support**: grammar for output files `.erg`, `.lst`, `.prt` and `.urs`.
+- **DEF file support**: grammar for `sofistik.def` variable files.
+- **Multi-version**: keywords for SOFiSTiK versions 2018-2026.
 - **Multi-language**: English and German keyword sets.
-- **Keywords service**: Programmatic access to keywords for other packages.
-- **Outline support**: Section markers via [navigation-panel](https://github.com/asiloisad/pulsar-navigation-panel).
+- **Keywords service**: programmatic access to keywords for other packages.
+- **Snippets**: `prog` snippet scaffolds a PROG block with HEAD and END.
 
 ## Installation
 
-To install `language-sofistik` search for [language-sofistik](https://web.pulsar-edit.dev/packages/language-sofistik) in the Install pane of the Pulsar settings or run `ppm install language-sofistik`. Alternatively, you can run `ppm install asiloisad/pulsar-language-sofistik` to install a package directly from the GitHub repository.
+To install `language-sofistik` search for _language-sofistik_ in the Install pane of the Lumine settings or run `lumine --install lumine-code/language-sofistik`.
 
-## File icons
-
-This package does not ship file icons. Use [native-icons](https://github.com/asiloisad/pulsar-native-icons) in `support` mode to show native SOFiSTiK file icons from the operating system.
-
-Example `native-icons` config:
-
-```cson
-"native-icons":
-  mode: "support"
-  greenlist: [
-    "*.dat"
-    "*.cdb"
-    "*.plb"
-    "*.gra"
-    "*.results"
-    "*.sofistik"
-  ]
-```
-
-## Version detection
+## Usage
 
 The package detects the SOFiSTiK version from:
 
 1. **File shebang** (first line): `@ SOFiSTiK 2026` or `@ SOFiSTiK 2026 EN`
 2. **sofistik.def file** in the same directory: `SOF_VERSION = 2026`
-3. **Config setting**: If a specific version is selected
-4. **Auto fallback**: Latest version
+3. **Config setting**: if a specific version is selected
+4. **Auto fallback**: latest version
 
-## SOFiSTiK Keywords Service
+Keywords and enum values are extracted from SOFiSTiK module `.err` files.
 
-This package provides a service that exposes SOFiSTiK keywords for programmatic access by other Pulsar packages.
+## Services
 
-To use the SOFiSTiK keywords service in your package, add to your `package.json`:
-
-```json
-{
-  "consumedServices": {
-    "sofistik.keywords": {
-      "versions": {
-        "2.0.0": "consumeKeywords"
-      }
-    }
-  }
-}
-```
-
-Then implement the consumer in your package's main file:
-
-```javascript
-module.exports = {
-  keywordsService: null,
-
-  consumeKeywords(service) {
-    this.keywordsService = service.provider;
-  },
-};
-```
-
-### Creating a Context
-
-Create a context-bound provider using `withContext()`. The context resolves version and language once at creation, so subsequent method calls don't need to pass editor/filePath:
-
-```javascript
-// Create context from editor (detects version/language from file)
-const ctx = this.keywordsService.withContext(editor);
-
-// Or from file path
-const ctx = this.keywordsService.withContext(null, "/path/to/file.dat");
-
-// Or use defaults from config
-const ctx = this.keywordsService.withContext();
-
-// Then use methods without passing context each time
-const keywords = ctx.getKeywords();
-const modules = ctx.getModuleNames();
-const commands = ctx.getModuleCommands("AQUA");
-```
-
-### Context methods
-
-#### `getVersion()` / `getLanguage()`
-
-Get the resolved version and language for this context.
-
-```javascript
-const version = ctx.getVersion(); // "2026"
-const language = ctx.getLanguage(); // "en"
-```
-
-#### `getKeywords()`
-
-Returns the complete keywords object organized by module.
-
-```javascript
-const keywords = ctx.getKeywords();
-// Returns: { "AQUA": { "BEAM": { "NO": null, "NPA": null, ... }, ... }, ... }
-```
-
-#### `getModuleKeywords(moduleName)`
-
-Get keywords for a specific module.
-
-```javascript
-const aquaKeywords = ctx.getModuleKeywords("AQUA");
-// Returns: { "BEAM": { "NO": null, ... }, "ECHO": { ... }, ... }
-```
-
-#### `getModuleNames()`
-
-Get all module names.
-
-```javascript
-const modules = ctx.getModuleNames();
-// Returns: ["AQUA", "SOFILOAD", "SOFIMSHA", ...]
-```
-
-#### `getModuleCommands(moduleName)`
-
-Get all commands for a specific module.
-
-```javascript
-const commands = ctx.getModuleCommands("AQUA");
-// Returns: ["BEAM", "ECHO", "TRUS", ...]
-```
-
-#### `getCommandKeywords(moduleName, commandName)`
-
-Get parameters object for a specific command.
-
-```javascript
-const beamParams = ctx.getCommandKeywords("AQUA", "BEAM");
-// Returns: { "NO": null, "NPA": null, "TYPE": ["B", "T", "V", ...], ... }
-```
-
-#### `getCommandParams(moduleName, commandName)`
-
-Get parameter names for a specific command.
-
-```javascript
-const params = ctx.getCommandParams("AQUA", "BEAM");
-// Returns: ["NO", "NPA", "TYPE", "HINB", ...]
-```
-
-#### `getParamEnums(moduleName, commandName, paramName)`
-
-Get enum values for a specific parameter.
-
-```javascript
-const enums = ctx.getParamEnums("AQUA", "BEAM", "TYPE");
-// Returns: ["B", "T", "V", ...] or null if no enums
-```
-
-#### `searchKeyword(keyword)`
-
-Search for a keyword across all modules.
-
-```javascript
-const results = ctx.searchKeyword("BEAM");
-// Returns: [
-//   { module: "AQUA", command: "BEAM", type: "command" },
-//   { module: "SOFIMSHA", command: "NODE", keyword: "BEAM", type: "param" },
-//   ...
-// ]
-```
-
-#### `validateKeyword(word)`
-
-Validate if a word is a SOFiSTiK keyword.
-
-```javascript
-const validation = ctx.validateKeyword("BEAM");
-// Returns: {
-//   module: "AQUA",
-//   command: "BEAM",
-//   type: "command",
-//   params: { "NO": null, "NPA": null, ... }
-// }
-
-const paramValidation = ctx.validateKeyword("TYPE");
-// Returns: {
-//   module: "AQUA",
-//   command: "BEAM",
-//   keyword: "TYPE",
-//   type: "param",
-//   enumValues: ["B", "T", "V", ...]
-// }
-```
-
-#### `getStatistics()`
-
-Get statistics about the keywords.
-
-```javascript
-const stats = ctx.getStatistics();
-// Returns: {
-//   version: "2026",
-//   language: "en",
-//   totalModules: 25,
-//   totalCommands: 450,
-//   totalSubKeywords: 2800,
-//   moduleStats: {
-//     "AQUA": { commands: 45, subKeywords: 320 },
-//     ...
-//   }
-// }
-```
-
-### Provider methods
-
-These methods are available directly on the provider (without creating a context):
-
-#### `getAvailableVersions()`
-
-Get all available SOFiSTiK versions.
-
-```javascript
-const versions = this.keywordsService.getAvailableVersions();
-// Returns: ["2018", "2020", "2022", "2023", "2024", "2025", "2026"]
-```
-
-#### `loadKeywords(version, language)`
-
-Load keywords for a specific version and language directly.
-
-```javascript
-const keywords = this.keywordsService.loadKeywords("2024", "de");
-```
-
-## Keyword sources
-
-Keywords and enum values are extracted from SOFiSTiK module `.err` files. The `.err` file format is documented at [sofistik-skills/sofistik-cadinp/ERR_FILE_FORMAT.md](https://github.com/andreasniggl/sofistik-skills/blob/main/sofistik-cadinp/ERR_FILE_FORMAT.md).
+- **sofistik.keywords** (`2.0.0`): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — resolved per version and language. Consumers call `service.provider.withContext(editor)` to get a context-bound provider with methods such as `getKeywords()`, `getModuleNames()`, `getModuleCommands()`, `searchKeyword()` and `validateKeyword()`.
 
 ## Contributing
 

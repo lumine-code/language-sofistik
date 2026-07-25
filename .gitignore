@@ -1,13 +1,20 @@
-*.dev
-scripts
-.build
-build/*
-!build/*.py
-!build/*.md
+# Dependencies
 node_modules/
-npm-debug.log
+
+# Build artifacts
+*.log
+npm-debug.log*
+
+# OS files
 .DS_Store
-*.pyc
-__pycache__/
-.vscode/
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# IDE
 .idea/
+.vscode/
+*.sublime-workspace

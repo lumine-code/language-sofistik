@@ -15,19 +15,20 @@ Each `.err` file contains command definitions for a SOFiSTiK module. The file co
 
 All definition lines start with a prefix indicating language and line type:
 
-| Prefix | Description |
-|--------|-------------|
-| `-10` | German command/parameter definition |
-| `-20` | English command/parameter definition |
-| `-*0` | Shared (both languages) command/parameter definition |
-| `-1XY` | German enum values (X=param index, Y=continuation) |
-| `-2XY` | English enum values (X=param index, Y=continuation) |
-| `-*XY` | Shared enum values (X=param index, Y=continuation) |
-| `-*2` | Data type hints (not used) |
+| Prefix | Description                                          |
+| ------ | ---------------------------------------------------- |
+| `-10`  | German command/parameter definition                  |
+| `-20`  | English command/parameter definition                 |
+| `-*0`  | Shared (both languages) command/parameter definition |
+| `-1XY` | German enum values (X=param index, Y=continuation)   |
+| `-2XY` | English enum values (X=param index, Y=continuation)  |
+| `-*XY` | Shared enum values (X=param index, Y=continuation)   |
+| `-*2`  | Data type hints (not used)                           |
 
 ## Command Definition Lines
 
 ### Format
+
 ```
 -10 CMD params...
 -20 CMD params...
@@ -35,10 +36,12 @@ All definition lines start with a prefix indicating language and line type:
 ```
 
 ### Command Name
+
 - 1-4 uppercase letters/digits after the prefix
 - Followed by space, `'`, `"`, or `!`
 
 ### Examples
+
 ```
 -10 STAB'VON 'BIS  DELT"TYP  PA   PE
 -20 BEAM'FROM'TO   INC "TYPE PA   PE
@@ -50,15 +53,16 @@ All definition lines start with a prefix indicating language and line type:
 
 Parameters are identified by their prefix character:
 
-| Prefix | Type | Description |
-|--------|------|-------------|
-| `"` | Enum | Parameter with predefined values |
-| `'` | Literal | Literal/fixed parameter |
+| Prefix  | Type    | Description                        |
+| ------- | ------- | ---------------------------------- |
+| `"`     | Enum    | Parameter with predefined values   |
+| `'`     | Literal | Literal/fixed parameter            |
 | `` ` `` | Comment | Comment marker (still valid param) |
-| `!` | Keyword | Regular keyword parameter |
-| (none) | Keyword | Regular keyword parameter |
+| `!`     | Keyword | Regular keyword parameter          |
+| (none)  | Keyword | Regular keyword parameter          |
 
 ### Examples
+
 ```
 "TYPE    → enum parameter (has predefined values)
 'FROM    → literal parameter
@@ -82,23 +86,25 @@ Parameters can span multiple lines. Continuation lines start with the language p
 Define allowed values for enum parameters.
 
 ### Format
+
 ```
 -XYZ values...
 ```
 
 Where:
+
 - `X` = Language: `1` (German), `2` (English), `*` (shared)
 - `Y` = Group identifier (usually `1`)
 - `Z` = Parameter POSITION (1-based) or enum index letter (K-Z)
 
 Full lookup table for `Z`:
 
-| `Z` value | Meaning |
-|-----------|---------|
-| `1`–`9` | Position 1–9 |
-| `A`–`F` | Position 10–15 (hex) |
-| `G`–`J` | Position 16–19 (extended) |
-| `K`–`Z` | Enum parameter index (K=0, L=1, M=2 …) |
+| `Z` value | Meaning                                |
+| --------- | -------------------------------------- |
+| `1`–`9`   | Position 1–9                           |
+| `A`–`F`   | Position 10–15 (hex)                   |
+| `G`–`J`   | Position 16–19 (extended)              |
+| `K`–`Z`   | Enum parameter index (K=0, L=1, M=2 …) |
 
 Named positions with specific semantics: `B`=geometry sub-type, `C`=curve type, `E`=position/reference.
 
@@ -140,6 +146,7 @@ Format: `-> PARAM@COMMAND` — meaning "use enum values from `COMMAND`'s `PARAM`
 ### Skipped Lines
 
 Lines containing these patterns are not actual enum values:
+
 - `....` - Placeholder markers
 - `F18`, `F19`, etc. - Version compatibility flags
 - `->` - Cross-reference redirects (see above)
@@ -165,6 +172,7 @@ Lines containing these patterns are not actual enum values:
 ```
 
 This defines:
+
 - Command `TRAI` (English) / `LZUG` (German)
 - Parameters: `TYPE`, `P1`-`P9`, `PFAC`, `PFAV`, `WIDT`, `PHI`, `PHIS`, `V`, `FUGA`, `XCON`, `YEX`, `DIR`, `DIRT`, `FRB`, `DAB`, `BOGI`, `FRBO`, `DABO`, `WHEE`, `FRWH`, `DAWH`
 - Enum `DIR` with values: `N`, `R`, `L`, `B`
@@ -189,6 +197,7 @@ The `sofistik.err` file contains two types of commands:
 2. **Module-specific commands** - Full definitions for commands referenced elsewhere (SSLA, ARBL, etc.)
 
 During extraction:
+
 - Commands referenced in only ONE other module are moved to that module (e.g., SSLA → AQUA)
 - Commands referenced in MULTIPLE modules stay in BASIC (e.g., PAGE, HEAD)
 - The SOFISTIK module is renamed to BASIC in the output

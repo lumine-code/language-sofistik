@@ -1,18 +1,28 @@
 {
   "name": "language-sofistik",
+  "author": "lumine-code",
   "description": "Syntax highlighting for SOFiSTiK structural analysis software",
-  "repository": "https://github.com/asiloisad/pulsar-language-sofistik",
+  "repository": "https://github.com/lumine-code/language-sofistik",
+  "bugs": {
+    "url": "https://github.com/lumine-code/language-sofistik/issues"
+  },
   "keywords": [
     "SOFiSTiK",
     "CADINP",
     "language"
   ],
-  "version": "2.6.0",
+  "version": "3.0.0",
   "license": "MIT",
   "engines": {
     "atom": ">=1.100.0 <2.0.0"
   },
   "main": "./lib/main",
+  "scripts": {
+    "test": "cd ../lumine && npm run test:only -- ../language-sofistik/spec",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
   "providedServices": {
     "sofistik.keywords": {
       "versions": {
@@ -21,13 +31,12 @@
     }
   },
   "grammars": [
-    "grammars/sofistik.cson",
-    "grammars/sofistik-raw.cson",
-    "grammars/sofistik-def.cson"
+    "grammars/sofistik.json",
+    "grammars/sofistik-raw.json",
+    "grammars/sofistik-def.json"
   ],
   "configSchema": {
     "version": {
-      "order": 1,
       "title": "SOFiSTiK version",
       "description": "SOFiSTiK version for keyword service (autocomplete). Use 'Auto detect' to detect from file content or sofistik.def.",
       "type": "string",
@@ -44,7 +53,6 @@
       "default": "Auto"
     },
     "language": {
-      "order": 2,
       "title": "Language",
       "description": "Language for SOFiSTiK keyword service.",
       "type": "string",
@@ -54,5 +62,13 @@
       ],
       "default": "English"
     }
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-n": "^18.2.2",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.6"
   }
 }

@@ -1,11 +1,9 @@
-@import "ui-variables";
-
 .syntax--sofistik {
   &.syntax--meta {
     font-weight: bold;
+
     &.syntax--version {
-      color: @button-background-color-selected;
+      color: var(--button-background-color-selected);
     }
   }
 }
-
