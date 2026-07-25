@@ -1,6 +1,8 @@
 # language-sofistik
 
-Syntax highlighting for SOFiSTiK structural analysis software. Provides grammars for input and output files with multi-version keyword support and a programmatic keywords service.
+Syntax highlighting for SOFiSTiK structural analysis software.
+
+Provides grammars for input and output files with multi-version keyword support and a programmatic keywords service.
 
 ## Features
 

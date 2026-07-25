@@ -1,7 +1,7 @@
 {
   "name": "language-sofistik",
   "author": "lumine-code",
-  "description": "Syntax highlighting for SOFiSTiK structural analysis software",
+  "description": "Syntax highlighting for SOFiSTiK structural analysis software.",
   "repository": "https://github.com/lumine-code/language-sofistik",
   "bugs": {
     "url": "https://github.com/lumine-code/language-sofistik/issues"
