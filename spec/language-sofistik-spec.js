@@ -42,7 +42,7 @@ describe("language-sofistik", () => {
     it("provides the sofistik.keywords service", () => {
       const service = mainModule.provideKeywords();
       expect(service.name).toBe("sofistik-keywords");
-      expect(service.version).toBe("2.0.0");
+      expect(service.version).toBe("1.0.0");
       expect(service.provider).toBeTruthy();
     });
 
