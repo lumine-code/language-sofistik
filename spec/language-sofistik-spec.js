@@ -40,28 +40,28 @@ describe("language-sofistik", () => {
 
   describe("keywords service", () => {
     it("provides the sofistik.keywords service", () => {
-      const service = mainModule.provideKeywords();
+      const service = mainModule.provideSofistikKeywords();
       expect(service.name).toBe("sofistik-keywords");
       expect(service.version).toBe("1.0.0");
       expect(service.provider).toBeTruthy();
     });
 
     it("lists available versions", () => {
-      const { provider } = mainModule.provideKeywords();
+      const { provider } = mainModule.provideSofistikKeywords();
       const versions = provider.getAvailableVersions();
       expect(versions).toContain("2026");
       expect(versions).toContain("2018");
     });
 
     it("loads keywords for a specific version and language", () => {
-      const { provider } = mainModule.provideKeywords();
+      const { provider } = mainModule.provideSofistikKeywords();
       const keywords = provider.loadKeywords("2026", "en");
       expect(keywords).toBeTruthy();
       expect(Object.keys(keywords).length).toBeGreaterThan(0);
     });
 
     it("creates a context with resolved version and language", () => {
-      const { provider } = mainModule.provideKeywords();
+      const { provider } = mainModule.provideSofistikKeywords();
       const ctx = provider.withContext();
       expect(ctx.getVersion()).toBeTruthy();
       expect(ctx.getLanguage()).toBeTruthy();

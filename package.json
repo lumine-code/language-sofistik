@@ -28,7 +28,7 @@
   "providedServices": {
     "sofistik.keywords": {
       "versions": {
-        "1.0.0": "provideKeywords"
+        "1.0.0": "provideSofistikKeywords"
       }
     }
   },
