@@ -32,7 +32,7 @@ Keywords and enum values are extracted from SOFiSTiK module `.err` files.
 
 ## Services
 
-- **sofistik.keywords** (`1.0.0`): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — resolved per version and language. Consumers call `service.provider.withContext(editor)` to get a context-bound provider with methods such as `getKeywords()`, `getModuleNames()`, `getModuleCommands()`, `searchKeyword()` and `validateKeyword()`.
+- **[sofistik.keywords](docs/sofistik.keywords.md)** (`1.0.0`): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — resolved per version and language. Consumers call `service.provider.withContext(editor)` to get a context-bound provider with methods such as `getKeywords()`, `getModuleNames()`, `getModuleCommands()`, `searchKeyword()` and `validateKeyword()`.
 
 ## Contributing
 
