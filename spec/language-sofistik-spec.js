@@ -38,6 +38,25 @@ describe("language-sofistik", () => {
     });
   });
 
+  // The per-grammar settings live in the `language` namespace; under the
+  // legacy `editor` one nothing reads them.
+  describe("scoped settings", () => {
+    it("comments a line with a dollar sign", async () => {
+      const editor = await atom.workspace.open("model.dat");
+      expect(editor.getGrammar().scopeName).toBe("source.sofistik");
+
+      editor.setText("+PROG AQUA");
+      editor.toggleLineCommentsForBufferRows(0, 0);
+      expect(editor.lineTextForBufferRow(0)).toBe("$ +PROG AQUA");
+    });
+
+    it("keeps the indentation of pasted text", () => {
+      expect(atom.config.get("language.autoIndentOnPaste", { scope: [".source.sofistik"] })).toBe(
+        false,
+      );
+    });
+  });
+
   describe("keywords service", () => {
     it("provides the sofistik.keywords service", () => {
       const service = mainModule.provideSofistikKeywords();
