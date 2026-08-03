@@ -1,0 +1,54 @@
+@ SOFiSTiK 2026
+$ A SOFiSTiK input sample, kept idiomatic so it is worth opening in the editor.
+$ Each PROG block is scoped by the module it runs, and a $ starts a comment.
+
++PROG AQUA urs:1
+HEAD Materials and cross sections
+PAGE UNII 0
+
+NORM DIN EN1992-2004
+CONC 1 C 30 TITL 'C30/37'
+STEE 2 B 500 TITL 'B500B'
+
+SREC 1 H 0.60 B 0.30 MNO 1 MRF 2 TITL 'Beam 300/600'
+END
+
++PROG SOFIMSHA urs:2
+HEAD Geometry
+SYST 3D GDIR NEGZ
+
+NODE 1 X 0.00 Y 0 Z 0 FIX PP
+NODE 2 X 6.00 Y 0 Z 0 FIX PZ
+NODE 3 X 12.00 Y 0 Z 0 FIX PZ
+
+BEAM 1 NA 1 NE 2 NCS 1 DIV 6
+BEAM 2 NA 2 NE 3 NCS 1 DIV 6
+END
+
++PROG SOFILOAD urs:3
+HEAD Loads
+
+LC 1 TYPE G TITL 'Self weight'
+  LCC 1 DLZ 1.0
+
+LC 2 TYPE Q TITL 'Live load'
+  LINE TYPE PZ P1 -10.0 REF S FROM 0.0 TO 1.0
+
+END
+
++PROG ASE urs:4
+HEAD Linear analysis
+CTRL SOLV 4
+LC 1,2
+END
+
+$ A disabled block keeps its highlighting but is not run.
+-PROG BEMESS urs:5
+HEAD Design
+END
+
++PROG WINGRAF urs:6
+HEAD Results
+GRA ; SIZE URS 6
+STRU ; BEAM STYP 'M-Y'
+END
