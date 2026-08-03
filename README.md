@@ -6,7 +6,7 @@ Provides grammars for input and output files with multi-version keyword support 
 
 ## Features
 
-- **Grammars**: provides TextMate grammars.
+- **Grammars**: provides TextMate grammars maintained here.
 - **Syntax highlighting**: complete support for `.dat`, `.gra`, `.grb` and `.results` input files.
 - **RAW file support**: grammar for output files `.erg`, `.lst`, `.prt` and `.urs`.
 - **DEF file support**: grammar for `sofistik.def` variable files.
