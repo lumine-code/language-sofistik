@@ -297,7 +297,7 @@ def generate_grammar(keywords_data, version=None, language=None):
     # Grammar header with metadata and references
     grammar_header = f'''
 # ***** References *****
-# https://pulsar-edit.dev/docs/launch-manual/sections/core-hacking/#creating-a-legacy-textmate-grammar
+# https://lumine-code.github.io/docs.html#developing-for-lumine/creating-a-grammar
 # https://gist.github.com/savetheclocktower/c9607b97477d4817911e4f2f8db89679
 # http://manual.macromates.com/en/language_grammars/
 # https://github.com/kkos/oniguruma/blob/master/doc/RE
