@@ -7,11 +7,11 @@ const path = require("path");
 
 describe("SOFiSTiK sample fixtures", () => {
   beforeEach(async () => {
-    await atom.packages.activatePackage("language-sofistik");
+    await lumine.packages.activatePackage("language-sofistik");
   });
 
   it("tokenizes sample.dat", async () => {
-    const editor = await atom.workspace.open(path.join(__dirname, "fixtures", "sample.dat"));
+    const editor = await lumine.workspace.open(path.join(__dirname, "fixtures", "sample.dat"));
 
     expect(editor.getGrammar().scopeName).toBe("source.sofistik");
 

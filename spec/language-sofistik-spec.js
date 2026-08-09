@@ -2,35 +2,35 @@ describe("language-sofistik", () => {
   let mainModule;
 
   beforeEach(async () => {
-    const { mainModule: main } = await atom.packages.activatePackage("language-sofistik");
+    const { mainModule: main } = await lumine.packages.activatePackage("language-sofistik");
     mainModule = main;
   });
 
   describe("grammars", () => {
     it("loads the SOFiSTiK grammar", () => {
-      const grammar = atom.grammars.grammarForScopeName("source.sofistik");
+      const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
       expect(grammar).toBeTruthy();
       expect(grammar.name).toBe("SOFiSTiK");
     });
 
     it("loads the SOFiSTiK DEF grammar", () => {
-      const grammar = atom.grammars.grammarForScopeName("source.sofistik-def");
+      const grammar = lumine.grammars.grammarForScopeName("source.sofistik-def");
       expect(grammar).toBeTruthy();
       expect(grammar.name).toBe("SOFiSTiK DEF");
     });
 
     it("selects the SOFiSTiK grammar for .dat files", () => {
-      const grammar = atom.grammars.selectGrammar("model.dat", "");
+      const grammar = lumine.grammars.selectGrammar("model.dat", "");
       expect(grammar.scopeName).toBe("source.sofistik");
     });
 
     it("selects the RAW grammar for output files", () => {
-      const grammar = atom.grammars.selectGrammar("report.lst", "");
+      const grammar = lumine.grammars.selectGrammar("report.lst", "");
       expect(grammar.scopeName).toBe("source.sofistik");
     });
 
     it("tokenizes a PROG line", () => {
-      const grammar = atom.grammars.grammarForScopeName("source.sofistik");
+      const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
       const { tokens } = grammar.tokenizeLine("+PROG AQUA");
       expect(tokens.length).toBeGreaterThan(0);
       const scopes = tokens.flatMap((token) => token.scopes);
@@ -42,7 +42,7 @@ describe("language-sofistik", () => {
   // legacy `editor` one nothing reads them.
   describe("scoped settings", () => {
     it("comments a line with a dollar sign", async () => {
-      const editor = await atom.workspace.open("model.dat");
+      const editor = await lumine.workspace.open("model.dat");
       expect(editor.getGrammar().scopeName).toBe("source.sofistik");
 
       editor.setText("+PROG AQUA");
@@ -51,7 +51,7 @@ describe("language-sofistik", () => {
     });
 
     it("keeps the indentation of pasted text", () => {
-      expect(atom.config.get("language.autoIndentOnPaste", { scope: [".source.sofistik"] })).toBe(
+      expect(lumine.config.get("language.autoIndentOnPaste", { scope: [".source.sofistik"] })).toBe(
         false,
       );
     });
