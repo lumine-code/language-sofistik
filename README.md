@@ -4,9 +4,11 @@ Syntax highlighting for SOFiSTiK structural analysis software.
 
 Provides grammars for input and output files with multi-version keyword support and a programmatic keywords service.
 
+> **NOTE**: This package is not an official SOFiSTiK product and is not affiliated with or endorsed by SOFiSTiK AG.
+
 ## Features
 
-- **Grammars**: provides TextMate grammars maintained here.
+- **Grammars**: provides TextMate grammars.
 - **Syntax highlighting**: complete support for `.dat`, `.gra`, `.grb` and `.results` input files.
 - **RAW file support**: grammar for output files `.erg`, `.lst`, `.prt` and `.urs`.
 - **DEF file support**: grammar for `sofistik.def` variable files.
@@ -17,22 +19,11 @@ Provides grammars for input and output files with multi-version keyword support 
 
 ## Installation
 
-To install `language-sofistik` search for _language-sofistik_ in the Install pane of the Lumine settings or run `lumine --install lumine-code/language-sofistik`.
-
-## Usage
-
-The package detects the SOFiSTiK version from:
-
-1. **File shebang** (first line): `@ SOFiSTiK 2026` or `@ SOFiSTiK 2026 EN`
-2. **sofistik.def file** in the same directory: `SOF_VERSION = 2026`
-3. **Config setting**: if a specific version is selected
-4. **Auto fallback**: latest version
-
-Keywords and enum values are extracted from SOFiSTiK module `.err` files.
+To install `language-sofistik` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/language-sofistik`.
 
 ## Services
 
-- **[sofistik.keywords](docs/sofistik.keywords.md)** (`1.0.0`): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — resolved per version and language. Consumers call `service.provider.withContext(editor)` to get a context-bound provider with methods such as `getKeywords()`, `getModuleNames()`, `getModuleCommands()`, `searchKeyword()` and `validateKeyword()`.
+- [`sofistik.keywords`](docs/sofistik.keywords.md): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — for a given release and language.
 
 ## Contributing
 

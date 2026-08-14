@@ -79,12 +79,51 @@ describe("language-sofistik", () => {
       expect(Object.keys(keywords).length).toBeGreaterThan(0);
     });
 
-    it("creates a context with resolved version and language", () => {
+    it("binds a provider to a release and language", () => {
       const { provider } = mainModule.provideSofistikKeywords();
-      const ctx = provider.withContext();
-      expect(ctx.getVersion()).toBeTruthy();
-      expect(ctx.getLanguage()).toBeTruthy();
+      const ctx = provider.forRelease("2026", "en");
+      expect(ctx.getVersion()).toBe("2026");
+      expect(ctx.getLanguage()).toBe("en");
       expect(ctx.getModuleNames().length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("the release a consumer asks for", () => {
+    let provider;
+
+    beforeEach(() => {
+      provider = mainModule.provideSofistikKeywords().provider;
+    });
+
+    it("returns the keywords of that release", () => {
+      const asked = provider.forRelease("2022", "en");
+      expect(asked.getVersion()).toBe("2022");
+      expect(asked.getModuleNames().length).toBeGreaterThan(0);
+    });
+
+    it("accepts a language as a code or as the word the setting uses", () => {
+      expect(provider.forRelease("2026", "de").getLanguage()).toBe("de");
+      expect(provider.forRelease("2026", "German").getLanguage()).toBe("de");
+      expect(provider.forRelease("2026", "English").getLanguage()).toBe("en");
+    });
+
+    it("defaults each argument on its own", () => {
+      const newest = provider.getAvailableVersions().at(-1);
+      expect(provider.forRelease().getVersion()).toBe(newest);
+      expect(provider.forRelease().getLanguage()).toBe("en");
+      // "Auto" is what the setting and the picker write for "not chosen".
+      expect(provider.forRelease("Auto", null).getVersion()).toBe(newest);
+      expect(provider.forRelease("", "").getVersion()).toBe(newest);
+      // A release named without a language still gets the default language.
+      expect(provider.forRelease("2020").getLanguage()).toBe("en");
+    });
+
+    it("resolves nothing itself — no detection, no settings", () => {
+      // Which release a file is for belongs to sofistik.environment; this
+      // package answering it too is how two packages come to disagree.
+      expect(provider.detect).toBeUndefined();
+      expect(provider.withContext).toBeUndefined();
+      expect(require("../package.json").configSchema).toBeUndefined();
     });
   });
 });

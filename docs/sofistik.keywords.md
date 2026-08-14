@@ -1,6 +1,6 @@
 # sofistik.keywords
 
-Exposes the SOFiSTiK keyword database — modules, commands, parameters, and enum values — resolved for the version and language of a given file.
+Exposes the SOFiSTiK keyword database — modules, commands, parameters, and enum values — for a given release and language.
 
 |             |                                                                         |
 | ----------- | ----------------------------------------------------------------------- |
@@ -35,15 +35,16 @@ type SofistikKeywords = {
 };
 
 type KeywordsProvider = {
-  withContext(editor: TextEditor, filePath?: string): ContextProvider;
+  forRelease(version?: string, language?: string): ReleaseKeywords;
+  getAvailableVersions(): string[];
 };
 ```
 
-`withContext` is the entry point — **everything else hangs off the context-bound provider it returns**, because the answers depend on the version and language detected for that file.
+`forRelease` is the entry point — **everything else hangs off the release-bound provider it returns**, because every answer depends on which release is being asked about.
 
-| Member on the context provider          | Description                                |
+| Member on the release provider          | Description                                |
 | --------------------------------------- | ------------------------------------------ |
-| `getVersion()`, `getLanguage()`         | What was detected for this file.           |
+| `getVersion()`, `getLanguage()`         | What this provider is bound to.            |
 | `getKeywords()`                         | Every keyword available in this context.   |
 | `getModuleNames()`                      | The module names.                          |
 | `getModuleKeywords(module)`             | Keywords belonging to one module.          |
@@ -67,7 +68,8 @@ module.exports = {
   },
 
   getSuggestions({ editor, prefix }) {
-    const context = this.keywords?.withContext(editor, editor.getPath());
+    const { version, language } = this.environment.resolve({ editor });
+    const context = this.keywords?.forRelease(version, language);
     if (!context) return [];
     return context
       .getKeywords()
@@ -81,13 +83,20 @@ module.exports = {
 
 **The service is a wrapper, not the provider.** Reach through `service.provider`; the `name` and `version` fields beside it identify the database, not the service contract.
 
-**Call `withContext` per request, not once at activation.** Version and language are detected from the file's content and the user's settings, both of which change — a context bound at activation goes stale, and gives the wrong keywords for the next file the user opens.
+**This service resolves nothing.** Which release a file is for — and in which language — is [`sofistik.environment`](https://github.com/lumine-code/sofistik-environment)'s question: it owns the settings, the installed releases and the order the evidence is consulted. Ask there, then ask here. That indirection is the point: two packages that each guessed would eventually guess differently about the same file.
 
-`withContext` accepts the editor and optionally its path. Pass the path when you have it: detection uses both, and a buffer with no path detects from content alone.
+```js
+const { version, language } = this.environment.resolve({ editor });
+const keywords = this.keywords.forRelease(version, language);
+```
 
-Module and command names are the coordinates for everything else. Resolve them from `getModuleNames` and `getModuleCommands` rather than hardcoding, since the set varies by detected version.
+**Call `forRelease` per request, not once at activation.** The release changes with the file the user is looking at, so a provider bound at activation gives the wrong keywords for the next file they open.
 
-`validateKeyword` is the linting entry point and answers in this file's context — a keyword valid in one version may not be in another, which is the whole reason the context exists.
+Both arguments are optional and independently defaulted: an unknown release falls back to the newest keyword data ships for, and an unknown language to English. `"Auto"` counts as unknown, since that is what the setting and the version picker write when the user has not chosen.
+
+Module and command names are the coordinates for everything else. Resolve them from `getModuleNames` and `getModuleCommands` rather than hardcoding, since the set varies by release.
+
+`validateKeyword` is the linting entry point and answers for the bound release — a keyword valid in one is not necessarily valid in another, which is the whole reason the binding exists.
 
 ## Teardown
 

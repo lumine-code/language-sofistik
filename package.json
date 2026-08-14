@@ -37,6 +37,7 @@
   },
   "providedServices": {
     "sofistik.keywords": {
+      "description": "Resolves SOFiSTiK keywords, modules, and language for a file.",
       "versions": {
         "1.0.0": "provideSofistikKeywords"
       }
@@ -47,34 +48,6 @@
     "grammars/sofistik-raw.json",
     "grammars/sofistik-def.json"
   ],
-  "configSchema": {
-    "version": {
-      "title": "SOFiSTiK version",
-      "description": "SOFiSTiK version for keyword service (autocomplete). Use 'Auto detect' to detect from file content or sofistik.def.",
-      "type": "string",
-      "enum": [
-        "Auto",
-        "2026",
-        "2025",
-        "2024",
-        "2023",
-        "2022",
-        "2020",
-        "2018"
-      ],
-      "default": "Auto"
-    },
-    "language": {
-      "title": "Language",
-      "description": "Language for SOFiSTiK keyword service.",
-      "type": "string",
-      "enum": [
-        "English",
-        "German"
-      ],
-      "default": "English"
-    }
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.0",
