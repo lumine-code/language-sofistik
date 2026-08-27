@@ -1,11 +1,11 @@
 {
   ".source.sofistik": {
-    "language": {
+    "editor": {
+      "commentStart": "$ ",
       "autoIndentOnPaste": false,
       "softWrap": false,
       "tabType": "soft",
-      "tabLength": 2,
-      "commentStart": "$ "
+      "tabLength": 2
     }
   }
 }

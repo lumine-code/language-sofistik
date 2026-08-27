@@ -38,7 +38,7 @@ describe("language-sofistik", () => {
     });
   });
 
-  // The per-grammar settings live in the `language` namespace; under the
+  // The per-grammar settings live in the `grammar` namespace; under the
   // legacy `editor` one nothing reads them.
   describe("scoped settings", () => {
     it("comments a line with a dollar sign", async () => {
@@ -51,7 +51,7 @@ describe("language-sofistik", () => {
     });
 
     it("keeps the indentation of pasted text", () => {
-      expect(lumine.config.get("language.autoIndentOnPaste", { scope: [".source.sofistik"] })).toBe(
+      expect(lumine.config.get("editor.autoIndentOnPaste", { scope: [".source.sofistik"] })).toBe(
         false,
       );
     });
