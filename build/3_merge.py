@@ -20,9 +20,8 @@ Params list format:
 - Empty list [] = command exists but has no params
 """
 
-import os ; __file__ = os.path.abspath('')+'/merge.py'
-
 import json
+import shutil
 from pathlib import Path
 
 
@@ -57,9 +56,10 @@ def convert_version(data):
 
 
 def main():
-    script_dir = Path(__file__).parent
+    script_dir = Path(__file__).resolve().parent
     extracted_dir = script_dir / 'extracted'
     commands_dir = script_dir.parent / 'commands'
+    schema_dir = script_dir.parent / 'schema'
 
     # Discover versions from extracted files
     versions = sorted(set(
@@ -75,6 +75,7 @@ def main():
 
     # Ensure output directory exists
     commands_dir.mkdir(parents=True, exist_ok=True)
+    schema_dir.mkdir(parents=True, exist_ok=True)
 
     total_size = 0
     total_files = 0
@@ -104,6 +105,11 @@ def main():
 
             print(f"  {output_file.name}: {total_modules} modules, {total_commands} commands ({size/1024:.0f} KB)")
 
+            schema_input = extracted_dir / f'sofistik.{ver}.{lang}.schema.json'
+            if schema_input.exists():
+                schema_output = schema_dir / f'sofistik.{ver}.{lang}.json'
+                shutil.copyfile(schema_input, schema_output)
+
     # Write meta.json
     meta = {
         "versions": versions,
@@ -112,6 +118,27 @@ def main():
     with open(meta_file, 'w', encoding='utf-8') as f:
         json.dump(meta, f, indent=2)
     total_files += 1
+
+    unresolved_redirects = {}
+    for schema_file in sorted(schema_dir.glob('sofistik.*.??.json')):
+        with open(schema_file, encoding='utf-8') as f:
+            schema = json.load(f)
+        unresolved_redirects['.'.join(schema_file.stem.split('.')[1:])] = sum(
+            1
+            for commands in schema.values()
+            for command in commands.values()
+            for slot in command['slots']
+            if slot['enumRedirect'] is not None and not slot['enumValues']
+        )
+
+    schema_meta = {
+        "versions": versions,
+        "languages": ["de", "en"],
+        "unresolvedRedirects": unresolved_redirects,
+    }
+    with open(schema_dir / 'meta.json', 'w', encoding='utf-8') as f:
+        json.dump(schema_meta, f, indent=2)
+        f.write('\n')
 
     # Remove old merged files if they exist
     for old_file in ['sofistik.en.json', 'sofistik.de.json']:

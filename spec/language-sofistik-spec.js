@@ -86,6 +86,38 @@ describe("language-sofistik", () => {
       expect(ctx.getLanguage()).toBe("en");
       expect(ctx.getModuleNames().length).toBeGreaterThan(0);
     });
+
+    it("provides ordered command schemas without an implicit BASIC fallback", () => {
+      const { provider } = mainModule.provideSofistikKeywords();
+      const ctx = provider.forRelease("2026", "en");
+      const schema = ctx.getCommandSchema("aqua", "conc");
+
+      expect(schema.slots.length).toBeGreaterThan(0);
+      expect(schema.slots.map((slot) => slot.position)).toEqual(
+        schema.slots.map((_slot, index) => index + 1),
+      );
+      expect(schema.slots.some((slot) => slot.kind === "placeholder" && slot.name === null)).toBe(
+        true,
+      );
+      expect(schema.slots.some((slot) => slot.dataTypeCode === "1092")).toBe(true);
+
+      const aquaCommands = new Set(ctx.getModuleCommands("AQUA"));
+      const basicOnly = ctx
+        .getModuleCommands("BASIC")
+        .find((command) => !aquaCommands.has(command));
+      expect(basicOnly).toBeTruthy();
+      expect(ctx.getCommandSchema("AQUA", basicOnly)).toBeNull();
+      expect(ctx.getCommandSchema("BASIC", basicOnly)).toBeTruthy();
+    });
+
+    it("resolves enum redirects while preserving their provenance", () => {
+      const { provider } = mainModule.provideSofistikKeywords();
+      const schema = provider.forRelease("2026", "en").getCommandSchema("AQB", "COMB");
+      const redirected = schema.slots.find((slot) => slot.enumRedirect?.command === "XLIT");
+
+      expect(redirected.enumRedirect.item).toBe("FACT");
+      expect(redirected.enumValues.length).toBeGreaterThan(0);
+    });
   });
 
   describe("the release a consumer asks for", () => {

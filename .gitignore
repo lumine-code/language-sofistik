@@ -4,6 +4,9 @@ node_modules/
 # Build artifacts
 *.log
 npm-debug.log*
+build/[0-9]*/
+build/extracted/
+build/__pycache__/
 
 # OS files
 .DS_Store

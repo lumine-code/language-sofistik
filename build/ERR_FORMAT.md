@@ -23,7 +23,7 @@ All definition lines start with a prefix indicating language and line type:
 | `-1XY` | German enum values (X=param index, Y=continuation)   |
 | `-2XY` | English enum values (X=param index, Y=continuation)  |
 | `-*XY` | Shared enum values (X=param index, Y=continuation)   |
-| `-*2`  | Data type hints (not used)                           |
+| `-*2`  | Fixed-column data type codes for the preceding slots |
 
 ## Command Definition Lines
 
@@ -141,7 +141,7 @@ Enum lines may contain a cross-reference redirect instead of values:
 -21B ->  TORS@CTRL
 ```
 
-Format: `-> PARAM@COMMAND` — meaning "use enum values from `COMMAND`'s `PARAM` parameter". These are **not** parsed; the redirect is skipped and the enum list remains empty for that parameter.
+Format: `-> PARAM@COMMAND` — meaning "use enum values from `COMMAND`'s `PARAM` parameter". A target without `@COMMAND` refers to the current command. The schema retains this reference as `enumRedirect` and copies resolved target values into `enumValues`.
 
 ### Skipped Lines
 
@@ -149,7 +149,7 @@ Lines containing these patterns are not actual enum values:
 
 - `....` - Placeholder markers
 - `F18`, `F19`, etc. - Version compatibility flags
-- `->` - Cross-reference redirects (see above)
+- `->` - Parsed separately as a cross-reference redirect (see above)
 
 ## Parameter Naming
 
@@ -207,10 +207,11 @@ During extraction:
 The `extract.py` script processes these files to generate JSON command definitions:
 
 1. Commands are matched by `-10`/`-20`/`-*0` prefix + command name
-2. Parameters are extracted with their type (enum/literal/keyword)
+2. Parameters are extracted as ordered slots with their type (enum/literal/keyword/comment/placeholder), without deduplicating repeated names
 3. Enum parameters are tracked for later value assignment
 4. Enum value lines assign values by parameter POSITION (not enum index)
 5. German (`-10`) and English (`-20`) are paired; shared (`-*0`) applies to both
-6. Empty reference commands are filled from SOFISTIK definitions
-7. Single-module commands are removed from BASIC (moved to their target module)
-8. Output is split into `sofistik.{version}.de.json` and `sofistik.{version}.en.json`
+6. Fixed-column `-*2` rows attach four-character data type codes to their aligned slots
+7. Redirect chains are resolved after empty reference commands are filled from SOFISTIK definitions
+8. Single-module commands are removed from BASIC (moved to their target module)
+9. Output is split into flat `commands/sofistik.{version}.{language}.json` files and ordered `schema/sofistik.{version}.{language}.json` files

@@ -38,6 +38,17 @@ type KeywordsProvider = {
   forRelease(version?: string, language?: string): ReleaseKeywords;
   getAvailableVersions(): string[];
 };
+
+type CommandSchema = {
+  slots: Array<{
+    position: number;
+    name: string | null;
+    kind: "keyword" | "literal" | "enum" | "comment" | "placeholder";
+    dataTypeCode: string | null;
+    enumValues: string[];
+    enumRedirect: { command: string; item: string } | null;
+  }>;
+};
 ```
 
 `forRelease` is the entry point — **everything else hangs off the release-bound provider it returns**, because every answer depends on which release is being asked about.
@@ -50,6 +61,7 @@ type KeywordsProvider = {
 | `getModuleKeywords(module)`             | Keywords belonging to one module.          |
 | `getModuleCommands(module)`             | The commands a module offers.              |
 | `getCommandKeywords(module, command)`   | Keywords under one command.                |
+| `getCommandSchema(module, command)`     | Ordered, positional input slots or `null`. |
 | `getCommandParams(module, command)`     | That command's parameters.                 |
 | `getParamEnums(module, command, param)` | The allowed values of a parameter.         |
 | `searchKeyword(keyword)`                | Looks a keyword up across the context.     |
@@ -95,6 +107,10 @@ const keywords = this.keywords.forRelease(version, language);
 Both arguments are optional and independently defaulted: an unknown release falls back to the newest keyword data ships for, and an unknown language to English. `"Auto"` counts as unknown, since that is what the setting and the version picker write when the user has not chosen.
 
 Module and command names are the coordinates for everything else. Resolve them from `getModuleNames` and `getModuleCommands` rather than hardcoding, since the set varies by release.
+
+`getCommandSchema` performs an exact module/command lookup; it never falls back to `BASIC`. A consumer that accepts common commands asks the active module first and then explicitly asks `BASIC`. Names are normalized to uppercase for lookup.
+
+Schema positions are one-based and include placeholders. Placeholder slots always have `name: null`, while repeated item names remain repeated slots. `kind` records the marker used by the `.err` definition; any slot kind can carry enum values when the catalogue assigns values by position. Redirected values are resolved into `enumValues` when their target has values, and `enumRedirect` remains as provenance.
 
 `validateKeyword` is the linting entry point and answers for the bound release — a keyword valid in one is not necessarily valid in another, which is the whole reason the binding exists.
 
