@@ -29,12 +29,18 @@ describe("language-sofistik", () => {
       expect(grammar.scopeName).toBe("source.sofistik");
     });
 
-    it("tokenizes a PROG line", () => {
-      const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
-      const { tokens } = grammar.tokenizeLine("+PROG AQUA");
-      expect(tokens.length).toBeGreaterThan(0);
-      const scopes = tokens.flatMap((token) => token.scopes);
-      expect(scopes.some((scope) => scope.includes("sofistik"))).toBe(true);
+    it("keeps the TextMate grammar as a fallback", () => {
+      lumine.config.set("editor.useTreeSitterParsers", false);
+      try {
+        const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
+        expect(grammar.constructor.name).not.toBe("TreeSitterGrammar");
+        const { tokens } = grammar.tokenizeLine("+PROG AQUA");
+        expect(tokens.length).toBeGreaterThan(0);
+        const scopes = tokens.flatMap((token) => token.scopes);
+        expect(scopes.some((scope) => scope.includes("sofistik"))).toBe(true);
+      } finally {
+        lumine.config.set("editor.useTreeSitterParsers", true);
+      }
     });
   });
 
@@ -117,6 +123,23 @@ describe("language-sofistik", () => {
 
       expect(redirected.enumRedirect.item).toBe("FACT");
       expect(redirected.enumValues.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("Tree-sitter injections", () => {
+    it("injects TODO annotations into comments", () => {
+      const calls = [];
+      mainModule.consumeTodoInjection({
+        addInjectionPoint(scope, options) {
+          calls.push({ scope, options });
+        },
+      });
+      expect(calls).toEqual([
+        {
+          scope: "source.sofistik",
+          options: { types: ["comment"] },
+        },
+      ]);
     });
   });
 

@@ -1,36 +1,44 @@
+const fs = require("fs");
 const path = require("path");
 
-// The fixture beside this file is a plain sample of the language — the file to
-// open when you want to look at the highlighting rather than assert on it. This
-// spec is only what stops the sample quietly rotting: the grammar still claims
-// it, and it still tokenizes.
+const FIXTURE = path.join(__dirname, "fixtures", "sample.dat");
 
 describe("SOFiSTiK sample fixtures", () => {
   beforeEach(async () => {
     await lumine.packages.activatePackage("language-sofistik");
   });
 
-  it("tokenizes sample.dat", async () => {
-    const editor = await lumine.workspace.open(path.join(__dirname, "fixtures", "sample.dat"));
+  it("parses sample.dat with Tree-sitter", async () => {
+    lumine.config.set("editor.useTreeSitterParsers", true);
+    const editor = await lumine.workspace.open(FIXTURE);
+    const languageMode = editor.getBuffer().getLanguageMode();
+    await languageMode.ready;
+    await languageMode.atTransactionEnd();
 
     expect(editor.getGrammar().scopeName).toBe("source.sofistik");
+    expect(editor.getGrammar().constructor.name).toBe("TreeSitterGrammar");
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(languageMode.tree.rootNode.descendantsOfType("program").length).toBe(6);
+    expect(languageMode.tree.rootNode.descendantsOfType("command").length).toBeGreaterThan(15);
+  });
 
-    // Read the grammar rather than the editor: a TextMate language mode
-    // tokenizes lazily in the background, so scanning rows through the editor
-    // reports whatever happened to be done by then — green on a fast machine
-    // and red on a slow one. `tokenizeLines` is synchronous and complete.
-    const text = require("fs").readFileSync(path.join(__dirname, "fixtures", "sample.dat"), "utf8");
-    const scopes = new Set();
-    for (const tokens of editor.getGrammar().tokenizeLines(text)) {
-      for (const token of tokens) {
-        for (const name of token.scopes) scopes.add(name);
+  it("tokenizes sample.dat with the TextMate fallback", async () => {
+    lumine.config.set("editor.useTreeSitterParsers", false);
+    try {
+      const editor = await lumine.workspace.open(FIXTURE);
+      expect(editor.getGrammar().scopeName).toBe("source.sofistik");
+      expect(editor.getGrammar().constructor.name).not.toBe("TreeSitterGrammar");
+
+      const scopes = new Set();
+      for (const tokens of editor.getGrammar().tokenizeLines(fs.readFileSync(FIXTURE, "utf8"))) {
+        for (const token of tokens) {
+          for (const name of token.scopes) scopes.add(name);
+        }
       }
+      scopes.delete("source.sofistik");
+      expect(scopes.size).toBeGreaterThan(0);
+    } finally {
+      lumine.config.set("editor.useTreeSitterParsers", true);
     }
-
-    // Every token carries the root scope, so a sample the grammar matched
-    // nothing in still tokenizes — it just comes back as one flat run of
-    // "source.sofistik" and nothing else. That is what this rules out.
-    scopes.delete("source.sofistik");
-    expect(scopes.size).toBeGreaterThan(0);
   });
 });

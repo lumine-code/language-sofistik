@@ -1,0 +1,19 @@
+{
+  "name": "SOFiSTiK",
+  "scopeName": "source.sofistik",
+  "type": "tree-sitter",
+  "parser": "tree-sitter-sofistik",
+  "injectionRegex": "^(sofistik|SOFiSTiK|cadinp|CADINP)$",
+  "fileTypes": ["dat", "gra", "grb", "results"],
+  "comments": {
+    "start": "$ "
+  },
+  "treeSitter": {
+    "parserSource": "github:lumine-code/tree-sitter-sofistik#5a9edfacd26784c0de6df2714a849cf63725a6ff",
+    "wasmBuildTool": "tree-sitter-cli#v0.26.13",
+    "grammar": "tree-sitter-sofistik/tree-sitter-sofistik.wasm",
+    "highlightsQuery": "tree-sitter-sofistik/highlights.scm",
+    "foldsQuery": "tree-sitter-sofistik/folds.scm",
+    "tagsQuery": "tree-sitter-sofistik/tags.scm"
+  }
+}

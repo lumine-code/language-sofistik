@@ -8,7 +8,7 @@ Provides grammars for input and output files with multi-version keyword support 
 
 ## Features
 
-- **Grammars**: provides TextMate grammars.
+- **Grammars**: provides both Tree-sitter and TextMate grammars.
 - **Syntax highlighting**: complete support for `.dat`, `.gra`, `.grb` and `.results` input files.
 - **RAW file support**: grammar for output files `.erg`, `.lst`, `.prt` and `.urs`.
 - **DEF file support**: grammar for `sofistik.def` variable files.
@@ -24,6 +24,7 @@ To install `language-sofistik` search for it in the Install pane of the Lumine s
 ## Services
 
 - [`sofistik.keywords`](docs/sofistik.keywords.md): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — for a given release and language.
+- `todo.injection`: consumed to highlight TODO-style annotations in comments.
 
 ## Contributing
 

@@ -47,7 +47,7 @@ $ A disabled block keeps its highlighting but is not run.
 HEAD Design
 END
 
-+PROG WINGRAF urs:6
++PROG WING urs:6
 HEAD Results
 GRA ; SIZE URS 6
 STRU ; BEAM STYP 'M-Y'
