@@ -3,11 +3,13 @@
 
 (program_sigil) @support.class.sofistik
 (commented_program_sigil) @support.class.sofistik
+[(sys_sigil)
+ (apply_sigil)] @support.class.sofistik
 (module_name) @support.class.sofistik
+(program_option) @comment.line.sofistik
 (command_name) @keyword.control.sofistik
 (dynamic_command_name) @keyword.control.sofistik
 (item_name) @entity.name.function.sofistik
-(enum_value) @constant.other.sofistik
 
 ; CADINP CONTROL AND PREPROCESSING
 ; ================================
@@ -22,11 +24,9 @@
 
 (number) @constant.numeric.sofistik
 (number_list) @constant.numeric.sofistik
-(sequence_generator) @constant.numeric.sofistik
 (dollar_variable) @variable.other.sofistik
 (hash_variable) @variable.other.sofistik
 (unit) @constant.other.sofistik
-[(expression) (generic_expression)] @entity.name.function.sofistik
 
 ((string) @string.double.sofistik
   (#match? @string.double.sofistik "^\""))

@@ -1,0 +1,9 @@
++PROG SOFIMSHA
+#IF #first_condition + 1
+NODE 1 X #first_x Y 0
+#ELSEIF $(alternate)
+NODE 2 X #alternate_x Y 0
+#ELSE
+NODE 3 X #fallback_x Y 0
+#ENDIF
+END

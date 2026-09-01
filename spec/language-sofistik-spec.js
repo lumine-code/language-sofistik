@@ -42,6 +42,109 @@ describe("language-sofistik", () => {
         lumine.config.set("editor.useTreeSitterParsers", true);
       }
     });
+
+    it("leaves the right side of a TextMate preprocessor definition unscoped", () => {
+      lumine.config.set("editor.useTreeSitterParsers", false);
+      try {
+        const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
+        const line = "#DEFINE macro = poin qgrp 'PP' type pg p #Q_w x #x y #y";
+        const { tokens } = grammar.tokenizeLine(line);
+        const scopesFor = (needle) => {
+          const offset = line.indexOf(needle);
+          let tokenStart = 0;
+          for (const token of tokens) {
+            const tokenEnd = tokenStart + token.value.length;
+            if (offset >= tokenStart && offset < tokenEnd) return token.scopes;
+            tokenStart = tokenEnd;
+          }
+          throw new Error(`No token contains ${needle}`);
+        };
+
+        expect(scopesFor("macro")).toContain("string.other.sofistik");
+        for (const value of ["poin", "'PP'", "#Q_w"]) {
+          const scopes = scopesFor(value);
+          expect(scopes).not.toContain("string.other.sofistik");
+          expect(scopes).not.toContain("string.single.sofistik");
+          expect(scopes).not.toContain("variable.other.sofistik");
+          expect(scopes).not.toContain("entity.name.function.sofistik");
+        }
+      } finally {
+        lumine.config.set("editor.useTreeSitterParsers", true);
+      }
+    });
+
+    it("preserves a trailing TextMate comment in a flat definition value", () => {
+      lumine.config.set("editor.useTreeSitterParsers", false);
+      try {
+        const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
+        const line = "#DEFINE no = 119 ! only vertical live";
+        const { tokens } = grammar.tokenizeLine(line);
+        const scopesFor = (needle) => {
+          const offset = line.indexOf(needle);
+          let tokenStart = 0;
+          for (const token of tokens) {
+            const tokenEnd = tokenStart + token.value.length;
+            if (offset >= tokenStart && offset < tokenEnd) return token.scopes;
+            tokenStart = tokenEnd;
+          }
+          throw new Error(`No token contains ${needle}`);
+        };
+
+        expect(scopesFor("no")).toContain("string.other.sofistik");
+        expect(scopesFor("119")).not.toContain("constant.numeric.sofistik");
+        expect(scopesFor("! only vertical live")).toContain("comment.line.sofistik");
+      } finally {
+        lumine.config.set("editor.useTreeSitterParsers", true);
+      }
+    });
+
+    it("leaves TextMate preprocessor conditions unscoped", () => {
+      lumine.config.set("editor.useTreeSitterParsers", false);
+      try {
+        const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
+        for (const line of ["#IF #condition + 1", "#ELSEIF $(alternate)"]) {
+          const { tokens } = grammar.tokenizeLine(line);
+          expect(tokens.flatMap((token) => token.scopes)).toContain("entity.name.section.sofistik");
+          const conditionScopes = tokens
+            .filter(
+              (token) => token.value.includes("condition") || token.value.includes("alternate"),
+            )
+            .flatMap((token) => token.scopes);
+
+          expect(conditionScopes.length).toBeGreaterThan(0);
+          expect(conditionScopes).not.toContain("variable.other.sofistik");
+          expect(conditionScopes).not.toContain("entity.name.function.sofistik");
+          expect(conditionScopes).not.toContain("string.other.sofistik");
+        }
+      } finally {
+        lumine.config.set("editor.useTreeSitterParsers", true);
+      }
+    });
+
+    it("treats a TextMate program option as a header comment", () => {
+      lumine.config.set("editor.useTreeSitterParsers", false);
+      try {
+        const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
+        const line = "+PROG TENDON URS:9";
+        const { tokens } = grammar.tokenizeLine(line);
+        const scopesFor = (needle) => {
+          const offset = line.indexOf(needle);
+          let tokenStart = 0;
+          for (const token of tokens) {
+            const tokenEnd = tokenStart + token.value.length;
+            if (offset >= tokenStart && offset < tokenEnd) return token.scopes;
+            tokenStart = tokenEnd;
+          }
+          throw new Error(`No token contains ${needle}`);
+        };
+
+        expect(scopesFor("+PROG")).toContain("support.class.tendon.sofistik");
+        expect(scopesFor("TENDON")).toContain("support.class.tendon.sofistik");
+        expect(scopesFor("URS:9")).toContain("comment.line.tendon.sofistik");
+      } finally {
+        lumine.config.set("editor.useTreeSitterParsers", true);
+      }
+    });
   });
 
   // The per-grammar settings live in the `grammar` namespace; under the

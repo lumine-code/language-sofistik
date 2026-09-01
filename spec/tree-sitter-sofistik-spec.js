@@ -5,6 +5,10 @@ const REGRESSION_FIXTURE = fs.readFileSync(
   path.join(__dirname, "fixtures", "tree-sitter-regressions.dat"),
   "utf8",
 );
+const FLAT_PREPROCESSOR_FIXTURE = fs.readFileSync(
+  path.join(__dirname, "fixtures", "flat-preprocessor.dat"),
+  "utf8",
+);
 
 describe("SOFiSTiK Tree-sitter grammar", () => {
   let editor;
@@ -81,6 +85,121 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     );
   });
 
+  it("treats program options as comments and enum-like values as plain text", async () => {
+    await setUp("+PROG TENDON URS:9\nAXES VAL3 11 KIND QUAD\nAXES VAL3 12 quad\nEND\n");
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(scopeFor("+PROG", 1)).toContain("support.class.sofistik");
+    expect(scopeFor("TENDON", 1)).toContain("support.class.sofistik");
+    expect(scopeFor("URS:9", 1)).toContain("comment.line.sofistik");
+    for (const value of ["QUAD", "quad"]) {
+      expect(scopeFor(value, 1)).not.toContain("constant.other.sofistik");
+    }
+  });
+
+  it("does not assign a function scope to a complete expression", async () => {
+    await setUp(
+      "+PROG SOFILOAD\nLC 1\nLINE QGRP 'PP' TYPE PG P 1.51*(#p_z3+0.36*0.06*26)[N/m] X1 0 X2 1\nEND\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(scopeFor("(#p_z3", 0)).not.toContain("entity.name.function.sofistik");
+    expect(scopeFor("+0.36", 0)).not.toContain("entity.name.function.sofistik");
+    expect(scopeFor("[N/m]", 1)).toContain("constant.other.sofistik");
+  });
+
+  it("highlights SYS inside and outside a flat preprocessor condition", async () => {
+    await setUp(
+      "#IF #copy_enabled\n+SYS wait copy 'inside.dat' 'inside-copy.dat'\n#ENDIF\n+SYS wait copy \"outside.dat\" \"outside-copy.dat\"\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(languageMode.tree.rootNode.descendantsOfType("sys_statement").length).toBe(2);
+    expect(scopeFor("#IF", 1)).toContain("entity.name.section.sofistik");
+    expect(scopeFor("#copy_enabled", 1)).not.toContain("variable.other.sofistik");
+    expect(scopeFor("+SYS", 1)).toContain("support.class.sofistik");
+    expect(scopeFor('SYS wait copy "outside.dat"', 1)).toContain("support.class.sofistik");
+    expect(scopeFor("'inside.dat'", 1)).toContain("string.single.sofistik");
+    expect(scopeFor('"outside.dat"', 1)).toContain("string.double.sofistik");
+  });
+
+  it("highlights an APPLY sigil and its interpolated string argument", async () => {
+    await setUp('+APPLY "$(project)_csm.dat"\n');
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(languageMode.tree.rootNode.descendantsOfType("apply_statement").length).toBe(1);
+    expect(scopeFor("+APPLY", 1)).toContain("support.class.sofistik");
+    expect(scopeFor('"$(project)_csm.dat"', 1)).toContain("string.double.sofistik");
+  });
+
+  it("highlights variables but not literals in a sequence generator", async () => {
+    await setUp("+PROG CSM\nGRP (24001 24000+#idt 1) ICS1 11 PHIF 0\nEND\n");
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(languageMode.tree.rootNode.descendantsOfType("sequence_generator").length).toBe(1);
+    expect(scopeFor("#idt", 1)).toContain("variable.other.sofistik");
+    for (const literal of ["(24001", "24000+#idt", "1)"]) {
+      const scope = scopeFor(literal, literal.startsWith("(") ? 1 : 0);
+      expect(scope).not.toContain("constant.numeric.sofistik");
+      expect(scope).not.toContain("entity.name.function.sofistik");
+    }
+  });
+
+  it("leaves the right side of a preprocessor definition unscoped", async () => {
+    await setUp("#DEFINE macro = poin qgrp 'PP' type pg p #Q_w x #x y #y\n");
+
+    expect(scopeFor("#DEFINE", 1)).toContain("entity.name.section.sofistik");
+    expect(scopeFor("macro", 1)).toContain("string.other.sofistik");
+    for (const value of ["poin", "'PP'", "#Q_w", "#x"]) {
+      const scope = scopeFor(value, 1);
+      expect(scope).not.toContain("entity.name.function.sofistik");
+      expect(scope).not.toContain("string.single.sofistik");
+      expect(scope).not.toContain("variable.other.sofistik");
+    }
+  });
+
+  it("preserves a trailing comment after a flat definition value", async () => {
+    await setUp("#DEFINE no = 119 ! only vertical live\n");
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(scopeFor("no", 1)).toContain("string.other.sofistik");
+    expect(scopeFor("119", 1)).not.toContain("constant.numeric.sofistik");
+    expect(scopeFor("119", 1)).not.toContain("entity.name.function.sofistik");
+    expect(scopeFor("! only vertical live", 1)).toContain("comment.line.sofistik");
+  });
+
+  it("keeps preprocessor conditionals flat and their bodies in module scope", async () => {
+    await setUp(FLAT_PREPROCESSOR_FIXTURE);
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(
+      languageMode.tree.rootNode
+        .descendantsOfType("preprocessor_keyword")
+        .map((node) => node.text.toUpperCase()),
+    ).toEqual(["#IF", "#ELSEIF", "#ELSE", "#ENDIF"]);
+
+    for (const keyword of ["#IF", "#ELSEIF", "#ELSE", "#ENDIF"]) {
+      expect(scopeFor(keyword, 1)).toContain("entity.name.section.sofistik");
+    }
+
+    for (const condition of ["#first_condition", "$(alternate)"]) {
+      const scope = scopeFor(condition, 1);
+      expect(scope).not.toContain("variable.other.sofistik");
+      expect(scope).not.toContain("entity.name.function.sofistik");
+      expect(scope).not.toContain("string.other.sofistik");
+    }
+
+    for (const command of ["NODE 1", "NODE 2", "NODE 3"]) {
+      expect(scopeFor(command, 1)).toContain("keyword.control.sofistik");
+    }
+    for (const item of ["X #first_x", "X #alternate_x", "X #fallback_x"]) {
+      expect(scopeFor(item)).toContain("entity.name.function.sofistik");
+    }
+    for (const variable of ["#first_x", "#alternate_x", "#fallback_x"]) {
+      expect(scopeFor(variable, 1)).toContain("variable.other.sofistik");
+    }
+  });
+
   it("parses representative files without changing scope around preprocessor definitions", async () => {
     await setUp(REGRESSION_FIXTURE);
 
@@ -114,8 +233,13 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("end\n\n+prog sofiload", 1)).toContain("keyword.control.sofistik");
     expect(scopeFor("#q_bk", 1)).toContain("variable.other.sofistik");
     expect(scopeFor("[N/m]", 1)).toContain("constant.other.sofistik");
-    expect(scopeFor("(80 89 1)", 1)).toContain("constant.numeric.sofistik");
+    expect(scopeFor("(80 89 1)", 1)).not.toContain("constant.numeric.sofistik");
+    expect(scopeFor("(80 89 1)", 1)).not.toContain("entity.name.function.sofistik");
+    expect(scopeFor("lc #lc0", 1)).toContain("keyword.control.sofistik");
+    expect(scopeFor("copy #lc0", 1)).toContain("keyword.control.sofistik");
     expect(scopeFor("supp $(no)", 1)).toContain("keyword.control.sofistik");
+    expect(scopeFor("maxima-supp", 1)).toContain("string.other.sofistik");
+    expect(scopeFor("#enddef", 1)).toContain("entity.name.section.sofistik");
     expect(scopeFor("11 Belki", 1)).not.toContain("invalid.illegal.sofistik");
   });
 
