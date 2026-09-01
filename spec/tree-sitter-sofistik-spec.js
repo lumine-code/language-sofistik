@@ -124,6 +124,31 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("[N/m]", 1)).toContain("constant.other.sofistik");
   });
 
+  it("highlights complete quoted TITL values after an equals sign", async () => {
+    await setUp(
+      "+PROG AQB\n" +
+        'COMB EXTR MAX TITL="Sum_11 G1 activating new"\n' +
+        "COMB EXTR MAX TITL='Sum_12 G2 activating old'\n" +
+        "END\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    const strings = languageMode.tree.rootNode.descendantsOfType("string");
+    expect(strings.map((node) => node.text)).toEqual([
+      '"Sum_11 G1 activating new"',
+      "'Sum_12 G2 activating old'",
+    ]);
+
+    for (const [value, expectedScope] of [
+      ['"Sum_11 G1 activating new"', "string.double.sofistik"],
+      ["'Sum_12 G2 activating old'", "string.single.sofistik"],
+    ]) {
+      for (const offset of [0, 1, value.length - 1]) {
+        expect(scopeFor(value, offset)).toContain(expectedScope);
+      }
+    }
+  });
+
   it("highlights SYS inside and outside a flat preprocessor condition", async () => {
     await setUp(
       "#IF #copy_enabled\n+SYS wait copy 'inside.dat' 'inside-copy.dat'\n#ENDIF\n+SYS wait copy \"outside.dat\" \"outside-copy.dat\"\n",
@@ -359,16 +384,122 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     ).toEqual(["AQUA", "CONC"]);
   });
 
-  it("folds only programs and flat preprocessor definitions", async () => {
+  it("folds complete real and commented program scopes plus flat definitions", async () => {
     await setUp(
-      "+PROG AQB\nEND\n#DEFINE aqblcs\nLC 1\nLC 2\nLC 3\n#ENDDEF\n+PROG TEMPLATE\nHEAD variables\nADD first $$\n  second\nEND\n",
+      "+PROG AQB\n" +
+        "HEAD ULS/E+P\n" +
+        "END\n" +
+        "#DEFINE aqblcs\n" +
+        "LC 1\n" +
+        "LC 2\n" +
+        "#ENDDEF\n" +
+        "+PROG TEMPLATE\n" +
+        "HEAD variables\n" +
+        "END\n" +
+        "$PROG ASE\n" +
+        "#DEFINE ASE_CTRL\n" +
+        "PAGE UNII 0\n" +
+        "#ENDDEF\n" +
+        "$PROG AQB\n" +
+        "#DEFINE AQB_CTRL\n" +
+        "PAGE UNII 0\n" +
+        "PAGE UNII 1\n" +
+        "#ENDDEF\n",
     );
 
-    expect(editor.isFoldableAtBufferRow(0)).toBe(true);
-    expect(editor.isFoldableAtBufferRow(2)).toBe(true);
-    for (const row of [3, 4, 5]) expect(editor.isFoldableAtBufferRow(row)).toBe(false);
-    expect(editor.isFoldableAtBufferRow(7)).toBe(true);
-    expect(editor.isFoldableAtBufferRow(8)).toBe(false);
-    expect(editor.isFoldableAtBufferRow(9)).toBe(false);
+    const getFoldedBufferRanges = () =>
+      editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
+
+    for (const row of [0, 3, 7, 10, 11, 14, 15]) {
+      expect(editor.isFoldableAtBufferRow(row)).toBe(true);
+    }
+    for (const row of [1, 2, 4, 5, 8, 9, 12, 13, 16, 17, 18]) {
+      expect(editor.isFoldableAtBufferRow(row)).toBe(false);
+    }
+
+    editor.foldBufferRow(0);
+    expect(getFoldedBufferRanges()).toEqual([[0, 6]]);
+
+    editor.unfoldAll();
+    editor.foldBufferRow(3);
+    expect(getFoldedBufferRanges()).toEqual([[3, 5]]);
+
+    editor.unfoldAll();
+    editor.foldBufferRow(10);
+    expect(getFoldedBufferRanges()).toEqual([[10, 13]]);
+
+    editor.unfoldAll();
+    editor.foldBufferRow(14);
+    expect(getFoldedBufferRanges()).toEqual([[14, 18]]);
+  });
+
+  it("folds nested and flat preprocessor conditions only from their IF headers", async () => {
+    await setUp(
+      "+PROG SOFIMSHA\n" +
+        "#IF #outer\n" +
+        "NODE 1 X 0\n" +
+        "#IF #inner\n" +
+        "NODE 2 X 1\n" +
+        "#ELSEIF #alternate\n" +
+        "NODE 3 X 2\n" +
+        "#ELSE\n" +
+        "NODE 4 X 3\n" +
+        "#ENDIF\n" +
+        "#ENDIF\n" +
+        "#IF #flat\n" +
+        "NODE 5 X 4\n" +
+        "#ENDIF\n" +
+        "END\n",
+    );
+
+    const getFoldedBufferRanges = () =>
+      editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
+
+    for (const row of [0, 1, 3, 11]) {
+      expect(editor.isFoldableAtBufferRow(row)).toBe(true);
+    }
+    for (const row of [2, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14]) {
+      expect(editor.isFoldableAtBufferRow(row)).toBe(false);
+    }
+
+    editor.foldBufferRow(1);
+    expect(getFoldedBufferRanges()).toEqual([[1, 9]]);
+
+    editor.unfoldAll();
+    editor.foldBufferRow(3);
+    expect(getFoldedBufferRanges()).toEqual([[3, 8]]);
+
+    editor.unfoldAll();
+    editor.foldBufferRow(11);
+    expect(getFoldedBufferRanges()).toEqual([[11, 12]]);
+  });
+
+  it("folds balanced nested loops only from their LOOP headers", async () => {
+    await setUp(
+      "+PROG SOFIMSHA\n" +
+        "LOOP 2\n" +
+        "LOOP 3\n" +
+        "NODE 1 X 0\n" +
+        "ENDLOOP\n" +
+        "ENDLOOP\n" +
+        "END\n",
+    );
+
+    const getFoldedBufferRanges = () =>
+      editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
+
+    for (const row of [0, 1, 2]) {
+      expect(editor.isFoldableAtBufferRow(row)).toBe(true);
+    }
+    for (const row of [3, 4, 5, 6]) {
+      expect(editor.isFoldableAtBufferRow(row)).toBe(false);
+    }
+
+    editor.foldBufferRow(1);
+    expect(getFoldedBufferRanges()).toEqual([[1, 4]]);
+
+    editor.unfoldAll();
+    editor.foldBufferRow(2);
+    expect(getFoldedBufferRanges()).toEqual([[2, 3]]);
   });
 });
