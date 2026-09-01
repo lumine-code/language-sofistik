@@ -21,7 +21,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     lumine.grammars.assignLanguageMode(buffer, "source.sofistik");
     languageMode = buffer.getLanguageMode();
     await languageMode.ready;
-    for (let index = 0; index < 25; index++) await Promise.resolve();
+    await languageMode.atTransactionEnd();
   };
 
   const scopeFor = (needle, offset = 0) => {
@@ -29,6 +29,20 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(index).not.toBe(-1);
     const position = editor.getBuffer().positionForCharacterIndex(index + offset);
     return editor.scopeDescriptorForBufferPosition(position).toString();
+  };
+
+  const foldedBufferRanges = () =>
+    editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
+
+  const expectFoldableRows = (foldableRows, otherRows) => {
+    for (const row of foldableRows) expect(editor.isFoldableAtBufferRow(row)).toBe(true);
+    for (const row of otherRows) expect(editor.isFoldableAtBufferRow(row)).toBe(false);
+  };
+
+  const expectFoldAt = (row, expectedRange) => {
+    editor.unfoldAll();
+    editor.foldBufferRow(row);
+    expect(foldedBufferRanges()).toEqual([expectedRange]);
   };
 
   beforeEach(async () => {
@@ -407,30 +421,11 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "#ENDDEF\n",
     );
 
-    const getFoldedBufferRanges = () =>
-      editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
-
-    for (const row of [0, 3, 7, 10, 11, 14, 15]) {
-      expect(editor.isFoldableAtBufferRow(row)).toBe(true);
-    }
-    for (const row of [1, 2, 4, 5, 8, 9, 12, 13, 16, 17, 18]) {
-      expect(editor.isFoldableAtBufferRow(row)).toBe(false);
-    }
-
-    editor.foldBufferRow(0);
-    expect(getFoldedBufferRanges()).toEqual([[0, 6]]);
-
-    editor.unfoldAll();
-    editor.foldBufferRow(3);
-    expect(getFoldedBufferRanges()).toEqual([[3, 5]]);
-
-    editor.unfoldAll();
-    editor.foldBufferRow(10);
-    expect(getFoldedBufferRanges()).toEqual([[10, 13]]);
-
-    editor.unfoldAll();
-    editor.foldBufferRow(14);
-    expect(getFoldedBufferRanges()).toEqual([[14, 18]]);
+    expectFoldableRows([0, 3, 7, 10, 11, 14, 15], [1, 2, 4, 5, 8, 9, 12, 13, 16, 17, 18]);
+    expectFoldAt(0, [0, 6]);
+    expectFoldAt(3, [3, 5]);
+    expectFoldAt(10, [10, 13]);
+    expectFoldAt(14, [14, 18]);
   });
 
   it("folds nested and flat preprocessor conditions only from their IF headers", async () => {
@@ -452,26 +447,10 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    const getFoldedBufferRanges = () =>
-      editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
-
-    for (const row of [0, 1, 3, 11]) {
-      expect(editor.isFoldableAtBufferRow(row)).toBe(true);
-    }
-    for (const row of [2, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14]) {
-      expect(editor.isFoldableAtBufferRow(row)).toBe(false);
-    }
-
-    editor.foldBufferRow(1);
-    expect(getFoldedBufferRanges()).toEqual([[1, 9]]);
-
-    editor.unfoldAll();
-    editor.foldBufferRow(3);
-    expect(getFoldedBufferRanges()).toEqual([[3, 8]]);
-
-    editor.unfoldAll();
-    editor.foldBufferRow(11);
-    expect(getFoldedBufferRanges()).toEqual([[11, 12]]);
+    expectFoldableRows([0, 1, 3, 11], [2, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14]);
+    expectFoldAt(1, [1, 9]);
+    expectFoldAt(3, [3, 8]);
+    expectFoldAt(11, [11, 12]);
   });
 
   it("folds balanced nested loops only from their LOOP headers", async () => {
@@ -485,21 +464,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    const getFoldedBufferRanges = () =>
-      editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
-
-    for (const row of [0, 1, 2]) {
-      expect(editor.isFoldableAtBufferRow(row)).toBe(true);
-    }
-    for (const row of [3, 4, 5, 6]) {
-      expect(editor.isFoldableAtBufferRow(row)).toBe(false);
-    }
-
-    editor.foldBufferRow(1);
-    expect(getFoldedBufferRanges()).toEqual([[1, 4]]);
-
-    editor.unfoldAll();
-    editor.foldBufferRow(2);
-    expect(getFoldedBufferRanges()).toEqual([[2, 3]]);
+    expectFoldableRows([0, 1, 2], [3, 4, 5, 6]);
+    expectFoldAt(1, [1, 4]);
+    expectFoldAt(2, [2, 3]);
   });
 });

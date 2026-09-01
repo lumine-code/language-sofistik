@@ -21,6 +21,3 @@ Thumbs.db
 .idea/
 .vscode/
 *.sublime-workspace
-
-# Build files
-build/2*

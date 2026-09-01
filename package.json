@@ -33,6 +33,7 @@
   ],
   "scripts": {
     "test": "lumine --test spec",
+    "test:build": "python -m unittest discover -s build -p \"test_*.py\"",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

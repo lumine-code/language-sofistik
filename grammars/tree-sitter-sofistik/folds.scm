@@ -1,8 +1,5 @@
-((program) @fold
-  (#set! fold.endAt endPosition)
-  (#set! fold.adjustToEndOfPreviousRow true))
-
-((commented_program_scope) @fold
+([(program)
+  (commented_program_scope)] @fold
   (#set! fold.endAt endPosition)
   (#set! fold.adjustToEndOfPreviousRow true))
 
