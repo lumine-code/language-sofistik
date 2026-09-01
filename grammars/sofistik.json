@@ -1207,6 +1207,12 @@
         "3": {
           "patterns": [
             {
+              "include": "#dollarVariableReference"
+            },
+            {
+              "include": "#hashVariableReference"
+            },
+            {
               "include": "#comments"
             }
           ]
@@ -1249,10 +1255,23 @@
       }
     },
     "preprocessorConditional": {
-      "match": "(?i)^[ \\t]*(#IF|#ELSEIF|#ELSE|#ENDIF)(?:[ \\t]+.*)?$",
+      "match": "(?i)^[ \\t]*(#IF|#ELSEIF|#ELSE|#ENDIF)(?:[ \\t]+(.*))?$",
       "captures": {
         "1": {
           "name": "entity.name.section.sofistik"
+        },
+        "2": {
+          "patterns": [
+            {
+              "include": "#dollarVariableReference"
+            },
+            {
+              "include": "#hashVariableReference"
+            },
+            {
+              "include": "#comments"
+            }
+          ]
         }
       }
     },

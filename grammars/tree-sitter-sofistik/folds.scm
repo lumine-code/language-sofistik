@@ -1,8 +1,4 @@
-[
-  (program)
-  (input_block)
-  (command)
-  (loop_block)
-  (if_block)
-  (text_block)
-] @fold
+(program) @fold
+
+(preprocessor_define_header) @fold.start
+(preprocessor_enddef_record) @fold.end

@@ -24,8 +24,6 @@
 
 (number) @constant.numeric.sofistik
 (number_list) @constant.numeric.sofistik
-(dollar_variable) @variable.other.sofistik
-(hash_variable) @variable.other.sofistik
 (unit) @constant.other.sofistik
 
 ((string) @string.double.sofistik
@@ -33,6 +31,12 @@
 
 ((string) @string.single.sofistik
   (#match? @string.single.sofistik "^'"))
+
+(preprocessor_directive
+  argument: (_) @string.other.sofistik)
+
+(dollar_variable) @variable.other.sofistik
+(hash_variable) @variable.other.sofistik
 
 ; TEXT AND METADATA
 ; =================

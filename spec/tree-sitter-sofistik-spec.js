@@ -116,7 +116,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(languageMode.tree.rootNode.hasError).toBe(false);
     expect(languageMode.tree.rootNode.descendantsOfType("sys_statement").length).toBe(2);
     expect(scopeFor("#IF", 1)).toContain("entity.name.section.sofistik");
-    expect(scopeFor("#copy_enabled", 1)).not.toContain("variable.other.sofistik");
+    expect(scopeFor("#copy_enabled", 1)).toContain("variable.other.sofistik");
     expect(scopeFor("+SYS", 1)).toContain("support.class.sofistik");
     expect(scopeFor('SYS wait copy "outside.dat"', 1)).toContain("support.class.sofistik");
     expect(scopeFor("'inside.dat'", 1)).toContain("string.single.sofistik");
@@ -145,17 +145,39 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
-  it("leaves the right side of a preprocessor definition unscoped", async () => {
-    await setUp("#DEFINE macro = poin qgrp 'PP' type pg p #Q_w x #x y #y\n");
+  it("highlights only embedded variables on the right side of a definition", async () => {
+    await setUp("#DEFINE macro = poin qgrp 'PP' type pg p #Q_w x #x y #y ! note\n");
 
     expect(scopeFor("#DEFINE", 1)).toContain("entity.name.section.sofistik");
     expect(scopeFor("macro", 1)).toContain("string.other.sofistik");
-    for (const value of ["poin", "'PP'", "#Q_w", "#x"]) {
+    for (const value of ["#Q_w", "#x", "#y"]) {
+      expect(scopeFor(value, 1)).toContain("variable.other.sofistik");
+    }
+    for (const value of ["poin", "'PP'", "type", "pg"]) {
       const scope = scopeFor(value, 1);
       expect(scope).not.toContain("entity.name.function.sofistik");
       expect(scope).not.toContain("string.single.sofistik");
       expect(scope).not.toContain("variable.other.sofistik");
+      expect(scope).not.toContain("constant.numeric.sofistik");
+      expect(scope).not.toContain("constant.other.sofistik");
     }
+    expect(scopeFor("! note", 1)).toContain("comment.line.sofistik");
+  });
+
+  it("highlights a dollar variable on the right side of a definition", async () => {
+    await setUp("#DEFINE project = $(probase)\n");
+
+    expect(scopeFor("project", 1)).toContain("string.other.sofistik");
+    expect(scopeFor("$(probase)", 2)).toContain("variable.other.sofistik");
+    expect(scopeFor(" = ", 1)).not.toContain("keyword.operator.sofistik");
+  });
+
+  it("highlights preprocessor directive arguments as strings", async () => {
+    await setUp('#INCLUDE maxima-supp\n#INCLUDE "$(project).dat"\n#INCLUDE $(include_path)\n');
+
+    expect(scopeFor("maxima-supp", 1)).toContain("string.other.sofistik");
+    expect(scopeFor('"$(project).dat"', 1)).toContain("string.other.sofistik");
+    expect(scopeFor("$(include_path)", 2)).toContain("variable.other.sofistik");
   });
 
   it("preserves a trailing comment after a flat definition value", async () => {
@@ -184,7 +206,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
 
     for (const condition of ["#first_condition", "$(alternate)"]) {
       const scope = scopeFor(condition, 1);
-      expect(scope).not.toContain("variable.other.sofistik");
+      expect(scope).toContain("variable.other.sofistik");
       expect(scope).not.toContain("entity.name.function.sofistik");
       expect(scope).not.toContain("string.other.sofistik");
     }
@@ -243,6 +265,66 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("11 Belki", 1)).not.toContain("invalid.illegal.sofistik");
   });
 
+  it("highlights every variable occurrence inside a parenthesized expression", async () => {
+    await setUp(REGRESSION_FIXTURE);
+
+    const expression = "(#L_1)+(#L_2-#L_1+#L_0)*(#i/(#L_n-1))";
+    const expressionStart = editor.getText().indexOf(expression);
+    expect(expressionStart).not.toBe(-1);
+    const matches = [...expression.matchAll(/#[A-Za-z][A-Za-z0-9_]*/g)];
+    expect(matches.map((match) => match[0])).toEqual([
+      "#L_1",
+      "#L_2",
+      "#L_1",
+      "#L_0",
+      "#i",
+      "#L_n",
+    ]);
+
+    for (const match of matches) {
+      const position = editor
+        .getBuffer()
+        .positionForCharacterIndex(expressionStart + match.index + 1);
+      expect(editor.scopeDescriptorForBufferPosition(position).toString()).toContain(
+        "variable.other.sofistik",
+      );
+    }
+
+    for (const literal of ["(", ")", "+", "-", "*", "/", "1"]) {
+      const position = editor
+        .getBuffer()
+        .positionForCharacterIndex(expressionStart + expression.indexOf(literal));
+      const scope = editor.scopeDescriptorForBufferPosition(position).toString();
+      expect(scope).not.toContain("constant.numeric.sofistik");
+      expect(scope).not.toContain("entity.name.function.sofistik");
+    }
+  });
+
+  it("highlights variables but not operators in a flat preprocessor condition", async () => {
+    await setUp("#IF $(project)<>$(probase)\n#ENDIF\n");
+
+    for (const variable of ["$(project)", "$(probase)"]) {
+      expect(scopeFor(variable, 2)).toContain("variable.other.sofistik");
+    }
+    const operatorScope = scopeFor("<>", 0);
+    expect(operatorScope).not.toContain("keyword.operator.sofistik");
+    expect(operatorScope).not.toContain("constant.numeric.sofistik");
+    expect(operatorScope).not.toContain("entity.name.function.sofistik");
+  });
+
+  it("keeps every command in an AQB definition after END in module scope", async () => {
+    await setUp("+PROG AQB\nEND\n#DEFINE aqblcs\nLC 1\nLC 2\nLC 3\n#ENDDEF\n");
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    const commands = languageMode.tree.rootNode.descendantsOfType("command_name");
+    expect(commands.map((node) => node.text.toUpperCase())).toEqual(["LC", "LC", "LC"]);
+    for (const command of commands) {
+      expect(editor.scopeDescriptorForBufferPosition(command.startPosition).toString()).toContain(
+        "keyword.control.sofistik",
+      );
+    }
+  });
+
   it("exposes nested program and command symbols", async () => {
     await setUp("+PROG AQUA\nCONC 1 C 30\nEND\n");
     const layer = languageMode.rootLanguageLayer;
@@ -261,9 +343,16 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     ).toEqual(["AQUA", "CONC"]);
   });
 
-  it("folds programs and commands that span physical lines", async () => {
-    await setUp("+PROG SOFIMSHA\nNODE 1 X 0\n  2 X 1\nEND\n");
+  it("folds only programs and flat preprocessor definitions", async () => {
+    await setUp(
+      "+PROG AQB\nEND\n#DEFINE aqblcs\nLC 1\nLC 2\nLC 3\n#ENDDEF\n+PROG TEMPLATE\nHEAD variables\nADD first $$\n  second\nEND\n",
+    );
+
     expect(editor.isFoldableAtBufferRow(0)).toBe(true);
-    expect(editor.isFoldableAtBufferRow(1)).toBe(true);
+    expect(editor.isFoldableAtBufferRow(2)).toBe(true);
+    for (const row of [3, 4, 5]) expect(editor.isFoldableAtBufferRow(row)).toBe(false);
+    expect(editor.isFoldableAtBufferRow(7)).toBe(true);
+    expect(editor.isFoldableAtBufferRow(8)).toBe(false);
+    expect(editor.isFoldableAtBufferRow(9)).toBe(false);
   });
 });
