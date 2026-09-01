@@ -97,6 +97,22 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
+  it("inherits localized PAGE commands and items in every program scope", async () => {
+    await setUp(
+      "$PROG ASE\n#DEFINE ASE_CTRL\nPAGE UNII 0\n#ENDDEF\n" +
+        "$PROG AQB\n#DEFINE AQB_CTRL\nSEIT UNIE 0\n#ENDDEF\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(languageMode.tree.rootNode.descendantsOfType("invalid_command").length).toBe(0);
+    for (const command of ["PAGE", "SEIT"]) {
+      expect(scopeFor(command, 1)).toContain("keyword.control.sofistik");
+    }
+    for (const item of ["UNII", "UNIE"]) {
+      expect(scopeFor(item, 1)).toContain("entity.name.function.sofistik");
+    }
+  });
+
   it("does not assign a function scope to a complete expression", async () => {
     await setUp(
       "+PROG SOFILOAD\nLC 1\nLINE QGRP 'PP' TYPE PG P 1.51*(#p_z3+0.36*0.06*26)[N/m] X1 0 X2 1\nEND\n",
