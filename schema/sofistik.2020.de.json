@@ -94615,6 +94615,106 @@
         }
       ]
     },
+    "SEIT": {
+      "slots": [
+        {
+          "position": 1,
+          "name": "NRST",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 2,
+          "name": "NZEI",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 3,
+          "name": "RAND",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 4,
+          "name": "SPRA",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 5,
+          "name": "SPRE",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 6,
+          "name": "UNIA",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 7,
+          "name": "UNIE",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 8,
+          "name": "FORM",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 9,
+          "name": "PRIL",
+          "kind": "keyword",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 10,
+          "name": "BEZ",
+          "kind": "enum",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 11,
+          "name": null,
+          "kind": "placeholder",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        },
+        {
+          "position": 12,
+          "name": null,
+          "kind": "placeholder",
+          "dataTypeCode": null,
+          "enumValues": [],
+          "enumRedirect": null
+        }
+      ]
+    },
     "HELP": {
       "slots": [
         {

@@ -211,6 +211,37 @@ describe("language-sofistik", () => {
         lumine.config.set("editor.useTreeSitterParsers", true);
       }
     });
+
+    it("highlights localized PAGE commands and items in every TextMate module", () => {
+      lumine.config.set("editor.useTreeSitterParsers", false);
+      try {
+        const grammar = lumine.grammars.grammarForScopeName("source.sofistik");
+        for (const [moduleName, command, item] of [
+          ["ASE", "PAGE", "UNII"],
+          ["AQB", "SEIT", "UNIE"],
+        ]) {
+          const header = grammar.tokenizeLine(`+PROG ${moduleName}`);
+          const definition = grammar.tokenizeLine("#DEFINE PAGE_CTRL", header.ruleStack);
+          const line = `${command} ${item} 0`;
+          const { tokens } = grammar.tokenizeLine(line, definition.ruleStack);
+          const scopesFor = (needle) => {
+            const offset = line.indexOf(needle);
+            let tokenStart = 0;
+            for (const token of tokens) {
+              const tokenEnd = tokenStart + token.value.length;
+              if (offset >= tokenStart && offset < tokenEnd) return token.scopes;
+              tokenStart = tokenEnd;
+            }
+            throw new Error(`No token contains ${needle}`);
+          };
+
+          expect(scopesFor(command)).toContain("keyword.control.sofistik");
+          expect(scopesFor(item)).toContain("entity.name.function.sofistik");
+        }
+      } finally {
+        lumine.config.set("editor.useTreeSitterParsers", true);
+      }
+    });
   });
 
   // The per-grammar settings live in the `grammar` namespace; under the
@@ -283,6 +314,19 @@ describe("language-sofistik", () => {
       expect(basicOnly).toBeTruthy();
       expect(ctx.getCommandSchema("AQUA", basicOnly)).toBeNull();
       expect(ctx.getCommandSchema("BASIC", basicOnly)).toBeTruthy();
+    });
+
+    it("exposes localized PAGE schemas through the exact BASIC module", () => {
+      const { provider } = mainModule.provideSofistikKeywords();
+      const english = provider.forRelease("2026", "en");
+      const german = provider.forRelease("2026", "de");
+
+      expect(english.getCommandSchema("BASIC", "PAGE").slots.length).toBeGreaterThan(0);
+      expect(english.getCommandParams("BASIC", "PAGE")).toContain("UNII");
+      expect(german.getCommandSchema("BASIC", "SEIT").slots.length).toBeGreaterThan(0);
+      expect(german.getCommandParams("BASIC", "SEIT")).toContain("UNIE");
+      expect(english.getCommandSchema("ASE", "PAGE")).toBeNull();
+      expect(german.getCommandSchema("AQB", "SEIT")).toBeNull();
     });
 
     it("resolves enum redirects while preserving their provenance", () => {

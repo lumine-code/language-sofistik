@@ -12,6 +12,63 @@ SPEC.loader.exec_module(extractor)
 
 
 class ExtractorTests(unittest.TestCase):
+    def test_keeps_localized_page_as_a_universal_basic_command(self):
+        page = extractor.command_template("PAGE")
+        page["de"] = "SEIT"
+        page["slots_de"] = extractor.extract_param_slots("UNIE")
+        page["slots_en"] = extractor.extract_param_slots("UNII")
+
+        control = extractor.command_template("CTRL")
+        control["slots_de"] = extractor.extract_param_slots("WARN")
+        control["slots_en"] = extractor.extract_param_slots("WARN")
+
+        page_reference = extractor.command_template("PAGE")
+        page_reference["de"] = "SEIT"
+        all_commands = {
+            "SOFISTIK": {"PAGE": page, "CTRL": control},
+            "ASE": {
+                "PAGE": page_reference,
+                "CTRL": extractor.command_template("CTRL"),
+            },
+        }
+
+        for language, localized_page, localized_item in (
+            ("en", "PAGE", "UNII"),
+            ("de", "SEIT", "UNIE"),
+        ):
+            with self.subTest(language=language):
+                schema, filled = extractor.build_language_schema(all_commands, language)
+
+                self.assertEqual(
+                    schema["ASE"][localized_page], schema["BASIC"][localized_page]
+                )
+                self.assertEqual(
+                    schema["BASIC"][localized_page]["slots"][0]["name"],
+                    localized_item,
+                )
+                self.assertIn(localized_page, filled)
+                self.assertNotIn("CTRL", schema["BASIC"])
+
+    def test_recovers_page_from_a_module_when_the_basic_source_is_missing(self):
+        page = extractor.command_template("PAGE")
+        page["de"] = "SEIT"
+        page["slots_de"] = extractor.extract_param_slots("UNIE")
+        page["slots_en"] = extractor.extract_param_slots("UNII")
+
+        incomplete_basic_page = extractor.command_template("SEIT")
+        all_commands = {
+            "SOFISTIK": {"SEIT": incomplete_basic_page},
+            "TENDON": {"PAGE": page},
+            "ASE": {"PAGE": extractor.command_template("PAGE")},
+        }
+
+        schema, filled = extractor.build_language_schema(all_commands, "en")
+
+        self.assertEqual(schema["BASIC"]["PAGE"], schema["TENDON"]["PAGE"])
+        self.assertEqual(schema["ASE"]["PAGE"], schema["BASIC"]["PAGE"])
+        self.assertEqual(schema["BASIC"]["PAGE"]["slots"][0]["name"], "UNII")
+        self.assertIn("PAGE", filled)
+
     def test_preserves_prefixed_placeholders_and_repeated_names(self):
         slots = extractor.extract_param_slots('"XXXX GAMA"APAR"SUP "FAT APAR')
 

@@ -1085,6 +1085,9 @@
     "normalText": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#textCommands"
         },
         {
@@ -1131,6 +1134,64 @@
         },
         {
           "include": "#units"
+        }
+      ]
+    },
+    "universalPage": {
+      "patterns": [
+        {
+          "begin": "(?i)(?:^[ \\t]*|(;) *)(PAGE)(?=;|$| )",
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.sofistik"
+            },
+            "2": {
+              "name": "keyword.control.sofistik"
+            }
+          },
+          "end": "(?=;|$)",
+          "patterns": [
+            {
+              "match": "(?i)(?<!\\w)(FIRS|FORM|LANI|LANO|LINE|MARG|PAG|PRIL|UNII|UNIO)(?!\\w)",
+              "name": "entity.name.function.sofistik"
+            },
+            {
+              "include": "#dollarVariableReference"
+            },
+            {
+              "include": "#hashVariableReference"
+            },
+            {
+              "include": "#comments"
+            }
+          ]
+        },
+        {
+          "begin": "(?i)(?:^[ \\t]*|(;) *)(SEIT)(?=;|$| )",
+          "beginCaptures": {
+            "1": {
+              "name": "support.type.sofistik"
+            },
+            "2": {
+              "name": "keyword.control.sofistik"
+            }
+          },
+          "end": "(?=;|$)",
+          "patterns": [
+            {
+              "match": "(?i)(?<!\\w)(BEZ|FORM|NRST|NZEI|PRIL|RAND|SPRA|SPRE|UNIA|UNIE)(?!\\w)",
+              "name": "entity.name.function.sofistik"
+            },
+            {
+              "include": "#dollarVariableReference"
+            },
+            {
+              "include": "#hashVariableReference"
+            },
+            {
+              "include": "#comments"
+            }
+          ]
         }
       ]
     },
@@ -1381,6 +1442,9 @@
     },
     "AQB": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -2468,6 +2532,9 @@
     },
     "AQUA": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -4837,6 +4904,9 @@
     "ASE": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -7136,6 +7206,9 @@
     "BDK": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -8033,6 +8106,9 @@
     },
     "BEAM": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -8983,6 +9059,9 @@
     },
     "BEMESS": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -10407,6 +10486,9 @@
     "COLUMN": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -11493,6 +11575,9 @@
     },
     "CSM": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -13328,6 +13413,9 @@
     "DBINFO": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -14026,6 +14114,9 @@
     },
     "DBMERG": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -15083,6 +15174,9 @@
     "DBPRIN": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -15886,6 +15980,9 @@
     },
     "DECREATOR": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -16784,6 +16881,9 @@
     "DOLFYN": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -17641,6 +17741,9 @@
     "DSYNC": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -18422,6 +18525,9 @@
     },
     "DYNA": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -19563,6 +19669,9 @@
     "DYNR": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -20429,6 +20538,9 @@
     },
     "ELLA": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -21716,6 +21828,9 @@
     },
     "FOOTING": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -23036,6 +23151,9 @@
     "HASE": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -24177,6 +24295,9 @@
     "HYDRA": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -25275,6 +25396,9 @@
     "MAXIMA": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -26204,6 +26328,9 @@
     "PLBCONVERTER": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -26860,6 +26987,9 @@
     },
     "RELY": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -27790,6 +27920,9 @@
     },
     "RESULTS": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -29309,6 +29442,9 @@
     "SIR": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -30185,6 +30321,9 @@
     },
     "SOFILOAD": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -32134,6 +32273,9 @@
     "SOFIMSHA": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -33724,6 +33866,9 @@
     },
     "SOFIMSHC": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -35431,6 +35576,9 @@
     "STAR2": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -36737,6 +36885,9 @@
     },
     "TALPA": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -38109,6 +38260,9 @@
     "TEMPLATE": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -39185,6 +39339,9 @@
     },
     "TENDON": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -42220,6 +42377,9 @@
     "TEXTILE": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -43075,6 +43235,9 @@
     },
     "TUNARS": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -43994,6 +44157,9 @@
     },
     "WING": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -46205,6 +46371,9 @@
     "FEABENCH": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -47619,6 +47788,9 @@
     "FEACHECK": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -48497,6 +48669,9 @@
     "SHEARWALL": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -49280,6 +49455,9 @@
     "TABLELAYOUT": {
       "patterns": [
         {
+          "include": "#universalPage"
+        },
+        {
           "include": "#preprocessorDefine"
         },
         {
@@ -49936,6 +50114,9 @@
     },
     "CSA": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },
@@ -50897,6 +51078,9 @@
     },
     "COMPOSITE": {
       "patterns": [
+        {
+          "include": "#universalPage"
+        },
         {
           "include": "#preprocessorDefine"
         },

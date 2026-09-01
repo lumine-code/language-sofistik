@@ -22,6 +22,7 @@ from pathlib import Path
 
 VERSIONS = ["2018", "2020", "2022", "2023", "2024", "2025", "2026"]
 LANGUAGES = ("de", "en")
+UNIVERSAL_COMMANDS = {"de": "SEIT", "en": "PAGE"}
 MODULE_ALIASES = {
     "DBIN": "DBINFO",
     "MAXI": "MAXIMA",
@@ -367,6 +368,22 @@ def build_language_schema(all_commands: dict, language: str) -> tuple[dict, set[
             }
 
     sofistik = modules.get("SOFISTIK", {})
+    universal_command = UNIVERSAL_COMMANDS[language]
+    universal_candidates = [
+        (module_name, commands[universal_command])
+        for module_name, commands in modules.items()
+        if commands.get(universal_command, {}).get("slots")
+    ]
+    if universal_candidates:
+        _source_module, universal_schema = max(
+            universal_candidates,
+            key=lambda candidate: (len(candidate[1]["slots"]), candidate[0]),
+        )
+        if len(sofistik.get(universal_command, {}).get("slots", [])) < len(
+            universal_schema["slots"]
+        ):
+            sofistik[universal_command] = copy.deepcopy(universal_schema)
+
     filled = defaultdict(set)
     for module_name, commands in modules.items():
         if module_name == "SOFISTIK":
@@ -377,7 +394,8 @@ def build_language_schema(all_commands: dict, language: str) -> tuple[dict, set[
                 filled[command_name].add(module_name)
 
     for command_name in filled:
-        sofistik.pop(command_name, None)
+        if command_name != universal_command:
+            sofistik.pop(command_name, None)
 
     if "SOFISTIK" in modules:
         modules["BASIC"] = modules.pop("SOFISTIK")

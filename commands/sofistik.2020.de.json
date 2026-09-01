@@ -21665,6 +21665,7 @@
     "TXAB": [],
     "TXEB": [],
     "TXEN": [],
+    "SEIT": ["NRST", "NZEI", "RAND", "SPRA", "SPRE", "UNIA", "UNIE", "FORM", "PRIL", "BEZ"],
     "HELP": ["SATZ", "KW"],
     "STEU": ["OPT", ["CORE", "WARN"], "VAL", "VAL2", "VAL3", "VAL4", "VAL5", "VAL6"],
     "ENDE": [],

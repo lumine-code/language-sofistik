@@ -210,6 +210,7 @@ def generate_module_patterns(keywords_data):
         repository_entry = f'''
   {module_name}: {{
     patterns: [
+      {{ include: '#universalPage' }}
       {{ include: '#preprocessorDefine' }}'''
 
         # Generate a begin/end pattern for EACH command with its specific subkeywords
@@ -327,6 +328,7 @@ patterns: [
 repository:
   normalText: {
     patterns: [
+      { include: '#universalPage' }
       { include: '#textCommands' }
       { include: '#preprocessorDefine' }
       { include: '#preprocessorInclude' }
@@ -343,6 +345,42 @@ repository:
       { include: '#controlFlowKeywords' }
       { include: '#expressionWithEquals' }
       { include: '#units' }
+    ]
+  }
+  universalPage: {
+    patterns: [
+      {
+        begin: '(?i)(?:^[ \\t]*|(;) *)(PAGE)(?=;|$| )'
+        beginCaptures:
+          1: name: 'support.type.sofistik'
+          2: name: 'keyword.control.sofistik'
+        end: '(?=;|$)'
+        patterns: [
+          {
+            match: '(?i)(?<!\\w)(FIRS|FORM|LANI|LANO|LINE|MARG|PAG|PRIL|UNII|UNIO)(?!\\w)'
+            name: 'entity.name.function.sofistik'
+          }
+          { include: '#dollarVariableReference' }
+          { include: '#hashVariableReference' }
+          { include: '#comments' }
+        ]
+      }
+      {
+        begin: '(?i)(?:^[ \\t]*|(;) *)(SEIT)(?=;|$| )'
+        beginCaptures:
+          1: name: 'support.type.sofistik'
+          2: name: 'keyword.control.sofistik'
+        end: '(?=;|$)'
+        patterns: [
+          {
+            match: '(?i)(?<!\\w)(BEZ|FORM|NRST|NZEI|PRIL|RAND|SPRA|SPRE|UNIA|UNIE)(?!\\w)'
+            name: 'entity.name.function.sofistik'
+          }
+          { include: '#dollarVariableReference' }
+          { include: '#hashVariableReference' }
+          { include: '#comments' }
+        ]
+      }
     ]
   }
   textCommands: {
@@ -384,17 +422,9 @@ repository:
       2: name: 'string.other.sofistik'
       3: patterns: [
         { include: '#dollarVariableReference' }
-        { include: '#comments' }
-        { include: '#stringDoubleQuoted' }
-        { include: '#stringSingleQuoted' }
-        { include: '#variableCommands' }
         { include: '#hashVariableReference' }
-        { include: '#loopKeyword' }
-        { include: '#controlFlowKeywords' }
-        { include: '#expressionWithEquals' }
-        { include: '#units' }
+        { include: '#comments' }
       ]
-      4: name: 'entity.name.section.sofistik'
   }
   preprocessorInclude: {
     match: '(?i)^[ \\t]*(#INCLUDE) +(.+)'
@@ -416,9 +446,14 @@ repository:
         ]
   }
   preprocessorConditional: {
-    match: '(?i)^[ \\t]*(#IF|#ELSE|#ENDIF)'
+    match: '(?i)^[ \\t]*(#IF|#ELSEIF|#ELSE|#ENDIF)(?:[ \\t]+(.*))?$'
     captures:
       1: name: 'entity.name.section.sofistik'
+      2: patterns: [
+        { include: '#dollarVariableReference' }
+        { include: '#hashVariableReference' }
+        { include: '#comments' }
+      ]
   }
   dollarVariableReference: {
     match: '(;)?[ ]*(\\$\\(\\S+?\\))'

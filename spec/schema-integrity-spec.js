@@ -86,4 +86,22 @@ describe("SOFiSTiK command schemas", () => {
       },
     ]);
   });
+
+  it("keeps localized PAGE as a universal BASIC command in every release", () => {
+    const schemaFiles = fs
+      .readdirSync(schemaDirectory)
+      .filter((name) => /^sofistik\.\d{4}\.(?:de|en)\.json$/.test(name));
+
+    for (const filename of schemaFiles) {
+      const language = filename.endsWith(".de.json") ? "de" : "en";
+      const commandName = language === "de" ? "SEIT" : "PAGE";
+      const itemName = language === "de" ? "UNIE" : "UNII";
+      const modules = JSON.parse(fs.readFileSync(path.join(schemaDirectory, filename), "utf8"));
+      const command = modules.BASIC?.[commandName];
+
+      expect(command).toBeTruthy();
+      expect(command.slots.length).toBeGreaterThan(0);
+      expect(command.slots.map((slot) => slot.name)).toContain(itemName);
+    }
+  });
 });

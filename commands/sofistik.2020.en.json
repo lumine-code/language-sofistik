@@ -3897,7 +3897,7 @@
   },
   "BEAM": {
     "HEAD": [],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "CTRL": [
       "OPT",
       ["AXIA", "DEFL", "EPCS", "NETT", "PICT", "SMOO"],
@@ -4997,7 +4997,7 @@
       "VAL5",
       "VAL6"
     ],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "TEST": [],
     "CTRL": ["OPT", ["CINT", "FJMP", "GAUS", "HDIV", "TEND"], "VAL", ["AUTO", "NO", "YES"]],
     "DSLN": [
@@ -5235,7 +5235,7 @@
       "VAL5",
       "VAL6"
     ],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "TEST": [],
     "CTRL": ["OPT", ["TEST", "TYPE"], "VAL", "V1", "V2", "V3"],
     "TARG": ["TYPE", ["SDB", "SQL"], "NAME"],
@@ -7290,7 +7290,7 @@
   "MAXIMA": {
     "HEAD": [],
     "TEST": ["NO", "VAL"],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "ECHO": [
       "OPT",
       [
@@ -7750,7 +7750,7 @@
   },
   "RESULTS": {
     "HEAD": [],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "CTRL": [
       "OPT",
       ["AXIS", "CUT", "DEF", "EMPT", "MEAS", "NOHE", "WRN"],
@@ -13927,7 +13927,7 @@
   "STAR": {
     "HEAD": [],
     "TEST": ["NO", "LEV", "DUMY"],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "ECHO": [
       "OPT",
       [
@@ -16070,7 +16070,7 @@
   },
   "WING": {
     "HEAD": [],
-    "PAGE": [],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "CTRL": [
       "OPT",
       ["AXIS", "CUT", "DBNE", "DEF", "EDGE", "EMPT", "GSTR", "INP", "MEAS", "NOHE", "REPR", "WRN"],
@@ -22949,6 +22949,7 @@
     ],
     "GLBA": ["S1", "S2", "K0", "K1", "K2", "K3", "M0", "C0", "TANR", "TAND", "KSIG", "D0", "D2"],
     "GLBL": ["S1", "S2", "K0", "K1", "K2", "K3", "P0", "P1", "P2", "P3", "PMA1", "PMA2"],
+    "PAGE": ["FIRS", "LINE", "MARG", "LANO", "LANI", "UNIO", "UNII", "FORM", "PRIL", "PAG"],
     "ECHO": ["OPT", "VAL"]
   }
 }
