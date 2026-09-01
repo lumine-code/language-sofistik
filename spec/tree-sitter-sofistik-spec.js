@@ -1,3 +1,11 @@
+const fs = require("fs");
+const path = require("path");
+
+const REGRESSION_FIXTURE = fs.readFileSync(
+  path.join(__dirname, "fixtures", "tree-sitter-regressions.dat"),
+  "utf8",
+);
+
 describe("SOFiSTiK Tree-sitter grammar", () => {
   let editor;
   let languageMode;
@@ -10,6 +18,13 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     languageMode = buffer.getLanguageMode();
     await languageMode.ready;
     for (let index = 0; index < 25; index++) await Promise.resolve();
+  };
+
+  const scopeFor = (needle, offset = 0) => {
+    const index = editor.getText().indexOf(needle);
+    expect(index).not.toBe(-1);
+    const position = editor.getBuffer().positionForCharacterIndex(index + offset);
+    return editor.scopeDescriptorForBufferPosition(position).toString();
   };
 
   beforeEach(async () => {
@@ -35,7 +50,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     ]);
   });
 
-  it("applies SOFiSTiK scopes and marks contextual errors", async () => {
+  it("applies SOFiSTiK scopes without decorating parser recovery nodes", async () => {
     await setUp("@ SOFiSTiK 2026\n+PROG AQUA\nCONC NO 1\nEND\n+PROG UNKNOWN\nEND\n");
 
     expect(editor.scopeDescriptorForBufferPosition([0, 3]).toString()).toContain(
@@ -50,9 +65,58 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(editor.scopeDescriptorForBufferPosition([2, 6]).toString()).toContain(
       "entity.name.function.sofistik",
     );
-    expect(editor.scopeDescriptorForBufferPosition([4, 7]).toString()).toContain(
+    expect(editor.scopeDescriptorForBufferPosition([4, 7]).toString()).not.toContain(
       "invalid.illegal.sofistik",
     );
+  });
+
+  it("highlights TEMPLATE commands and END records", async () => {
+    await setUp("+PROG TEMPLATE\nHEAD variables\nEND\n");
+
+    expect(editor.scopeDescriptorForBufferPosition([1, 1]).toString()).toContain(
+      "keyword.control.sofistik",
+    );
+    expect(editor.scopeDescriptorForBufferPosition([2, 1]).toString()).toContain(
+      "keyword.control.sofistik",
+    );
+  });
+
+  it("parses representative files without changing scope around preprocessor definitions", async () => {
+    await setUp(REGRESSION_FIXTURE);
+
+    const root = languageMode.tree.rootNode;
+    expect(root.hasError).toBe(false);
+    expect(root.descendantsOfType("program").length).toBe(3);
+    expect(root.descendantsOfType("commented_program_header").length).toBe(2);
+    expect(root.toString()).not.toContain("preprocessor_define_block");
+    expect(
+      root.descendantsOfType("ignored_text").some((node) => node.text.includes("11 Belki")),
+    ).toBe(true);
+    expect(root.descendantsOfType("sequence_generator").map((node) => node.text)).toEqual([
+      "(80 89 1)",
+    ]);
+    expect(root.descendantsOfType("hash_variable").map((node) => node.text)).toContain("#q_bk");
+    expect(root.descendantsOfType("unit").map((node) => node.text)).toContain("[N/m]");
+
+    const commandNames = root
+      .descendantsOfType("command_name")
+      .map((node) => node.text.toUpperCase());
+    expect(commandNames).toContain("HEAD");
+    expect(commandNames).toContain("SUPP");
+  });
+
+  it("applies stable scopes to the representative regression cases", async () => {
+    await setUp(REGRESSION_FIXTURE);
+
+    expect(scopeFor("$prog sofiload", 1)).toContain("support.class.sofistik");
+    expect(scopeFor("$prog maxima", 7)).toContain("support.class.sofistik");
+    expect(scopeFor("head variables", 1)).toContain("keyword.control.sofistik");
+    expect(scopeFor("end\n\n+prog sofiload", 1)).toContain("keyword.control.sofistik");
+    expect(scopeFor("#q_bk", 1)).toContain("variable.other.sofistik");
+    expect(scopeFor("[N/m]", 1)).toContain("constant.other.sofistik");
+    expect(scopeFor("(80 89 1)", 1)).toContain("constant.numeric.sofistik");
+    expect(scopeFor("supp $(no)", 1)).toContain("keyword.control.sofistik");
+    expect(scopeFor("11 Belki", 1)).not.toContain("invalid.illegal.sofistik");
   });
 
   it("exposes nested program and command symbols", async () => {

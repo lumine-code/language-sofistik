@@ -2,8 +2,10 @@
 ; ====================
 
 (program_sigil) @support.class.sofistik
+(commented_program_sigil) @support.class.sofistik
 (module_name) @support.class.sofistik
 (command_name) @keyword.control.sofistik
+(dynamic_command_name) @keyword.control.sofistik
 (item_name) @entity.name.function.sofistik
 (enum_value) @constant.other.sofistik
 
@@ -20,6 +22,7 @@
 
 (number) @constant.numeric.sofistik
 (number_list) @constant.numeric.sofistik
+(sequence_generator) @constant.numeric.sofistik
 (dollar_variable) @variable.other.sofistik
 (hash_variable) @variable.other.sofistik
 (unit) @constant.other.sofistik
@@ -41,9 +44,7 @@
 ((metadata) @meta.version.sofistik
   (#match? @meta.version.sofistik "^@\\s*[Ss][Oo][Ff][Ii][Ss][Tt][Ii][Kk]\\s+[0-9]{4}"))
 
-; COMMENTS AND INVALID INPUT
-; ==========================
+; COMMENTS
+; ========
 
 (comment) @comment.line.sofistik
-
-[(invalid_module) (invalid_command) (invalid_item) (ERROR)] @invalid.illegal.sofistik

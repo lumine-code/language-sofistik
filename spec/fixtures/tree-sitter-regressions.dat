@@ -1,0 +1,39 @@
+!+! Groups
+
+11 Belki prefabrykowane
+21 Poprzecznice podporowe
+32 Plyta pomostowa (ends)
+
+!?! Blocks
+
+$prog sofiload
+
+#define xloop
+let#id 0
+loop#i #L_n
+  let#id #id+1
+  lc #lc0+#id type #act
+    copy #lc0 ref #ref dx (#L_1)+(#L_2-#L_1+#L_0)*(#i/(#L_n-1)) dy #B_0
+endloop
+#enddef
+
++prog template
+head variables
+end
+
++prog sofiload
+head loads
+lc 192 none
+  line qgrp 'PP' type pg #q_bk[N/m] x1 #x1 -7.51 x2 #x2 -7.51
+end
+
++prog csm
+head stages
+grp (80 89 1) ics1 11 phif 0
+end
+
+$prog maxima
+
+#define maxima-supp
+supp $(no) mami auto
+#enddef
