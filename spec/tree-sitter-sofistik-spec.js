@@ -183,7 +183,26 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(languageMode.tree.rootNode.hasError).toBe(false);
     expect(languageMode.tree.rootNode.descendantsOfType("apply_statement").length).toBe(1);
     expect(scopeFor("+APPLY", 1)).toContain("support.class.sofistik");
-    expect(scopeFor('"$(project)_csm.dat"', 1)).toContain("string.double.sofistik");
+    expect(scopeFor('"$(project)_csm.dat"', 0)).toContain("string.double.sofistik");
+    expect(scopeFor("$(project)", 2)).toContain("variable.other.sofistik");
+  });
+
+  it("highlights dollar variables but not hash syntax inside strings", async () => {
+    await setUp(
+      "+PROG ASE\n" +
+        'CTRL ASE TEXT "$(asetxt1)"\n' +
+        "CTRL ASE TEXT '$(asetxt2)'\n" +
+        'CTRL ASE TEXT "#plain"\n' +
+        "END\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(scopeFor("$(asetxt1)", 2)).toContain("variable.other.sofistik");
+    expect(scopeFor("$(asetxt2)", 2)).toContain("variable.other.sofistik");
+    expect(scopeFor('"$(asetxt1)"', 0)).toContain("string.double.sofistik");
+    expect(scopeFor("'$(asetxt2)'", 0)).toContain("string.single.sofistik");
+    expect(scopeFor('"#plain"', 1)).toContain("string.double.sofistik");
+    expect(scopeFor('"#plain"', 1)).not.toContain("variable.other.sofistik");
   });
 
   it("highlights variables but not literals in a sequence generator", async () => {
