@@ -10,6 +10,7 @@
 (command_name) @keyword.control.sofistik
 (dynamic_command_name) @keyword.control.sofistik
 (item_name) @entity.name.function.sofistik
+";" @punctuation.terminator.record.sofistik
 
 ; CADINP CONTROL AND PREPROCESSING
 ; ================================

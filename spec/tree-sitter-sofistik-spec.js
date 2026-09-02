@@ -162,6 +162,26 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
+  it("highlights record terminators but not semicolons inside strings or comments", async () => {
+    await setUp("+PROG AQUA\nHEAD 'a;b'; HEAD next ! comment ; remains text\nEND\n");
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    const source = editor.getText();
+    const scopeAtIndex = (index) =>
+      editor
+        .scopeDescriptorForBufferPosition(editor.getBuffer().positionForCharacterIndex(index))
+        .toString();
+    const terminatorScope = scopeAtIndex(source.indexOf("';") + 1);
+    const stringScope = scopeAtIndex(source.indexOf("a;b") + 1);
+    const commentScope = scopeAtIndex(source.indexOf("; remains"));
+
+    expect(terminatorScope).toContain("punctuation.terminator.record.sofistik");
+    expect(stringScope).toContain("string.single.sofistik");
+    expect(stringScope).not.toContain("punctuation.terminator.record.sofistik");
+    expect(commentScope).toContain("comment.line.sofistik");
+    expect(commentScope).not.toContain("punctuation.terminator.record.sofistik");
+  });
+
   it("highlights SYS inside and outside a flat preprocessor condition", async () => {
     await setUp(
       "#IF #copy_enabled\n+SYS wait copy 'inside.dat' 'inside-copy.dat'\n#ENDIF\n+SYS wait copy \"outside.dat\" \"outside-copy.dat\"\n",
