@@ -19,6 +19,9 @@
   "engines": {
     "lumine": "^1.0.0"
   },
+  "specPackages": [
+    "language-log"
+  ],
   "main": "./lib/main",
   "files": [
     "commands",
@@ -54,10 +57,7 @@
     }
   },
   "grammars": [
-    "grammars/tree-sitter-sofistik.json",
-    "grammars/sofistik.json",
-    "grammars/sofistik-raw.json",
-    "grammars/sofistik-def.json"
+    "grammars/sofistik.json"
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",

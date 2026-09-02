@@ -46,7 +46,6 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   };
 
   beforeEach(async () => {
-    lumine.config.set("editor.useTreeSitterParsers", true);
     await lumine.packages.activatePackage("language-sofistik");
   });
 
@@ -200,7 +199,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
-  it("highlights only embedded variables on the right side of a definition", async () => {
+  it("highlights variables and quoted strings on the right side of a definition", async () => {
     await setUp("#DEFINE macro = poin qgrp 'PP' type pg p #Q_w x #x y #y ! note\n");
 
     expect(scopeFor("#DEFINE", 1)).toContain("entity.name.section.sofistik");
@@ -208,10 +207,11 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     for (const value of ["#Q_w", "#x", "#y"]) {
       expect(scopeFor(value, 1)).toContain("variable.other.sofistik");
     }
-    for (const value of ["poin", "'PP'", "type", "pg"]) {
+    expect(scopeFor("'PP'", 1)).toContain("string.single.sofistik");
+    for (const value of ["poin", "qgrp", "type", "pg"]) {
       const scope = scopeFor(value, 1);
       expect(scope).not.toContain("entity.name.function.sofistik");
-      expect(scope).not.toContain("string.single.sofistik");
+      expect(scope).not.toContain("string.");
       expect(scope).not.toContain("variable.other.sofistik");
       expect(scope).not.toContain("constant.numeric.sofistik");
       expect(scope).not.toContain("constant.other.sofistik");
@@ -227,12 +227,15 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor(" = ", 1)).not.toContain("keyword.operator.sofistik");
   });
 
-  it("highlights preprocessor directive arguments as strings", async () => {
-    await setUp('#INCLUDE maxima-supp\n#INCLUDE "$(project).dat"\n#INCLUDE $(include_path)\n');
+  it("highlights preprocessor directive arguments by value type", async () => {
+    await setUp(
+      '#INCLUDE maxima-supp\n#INCLUDE "$(project).dat"\n#INCLUDE $(include_path)\n#INCLUDE #i_results\n',
+    );
 
     expect(scopeFor("maxima-supp", 1)).toContain("string.other.sofistik");
     expect(scopeFor('"$(project).dat"', 1)).toContain("string.other.sofistik");
     expect(scopeFor("$(include_path)", 2)).toContain("variable.other.sofistik");
+    expect(scopeFor("#i_results", 1)).toContain("variable.other.sofistik");
   });
 
   it("preserves a trailing comment after a flat definition value", async () => {
@@ -353,6 +356,81 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       expect(scope).not.toContain("constant.numeric.sofistik");
       expect(scope).not.toContain("entity.name.function.sofistik");
     }
+  });
+
+  it("highlights both variable syntaxes and quoted strings in a LET definition", async () => {
+    await setUp(
+      "+PROG SOFILOAD\n" +
+        "LET#D_1 1.2+0.40+#D_F ; " +
+        "LET#POS #L_1+#D_1+(#L_2-#L_1-#D_1)*(#I/(#L_N-1))+$(OFFSET) \"double\" 'single'\n" +
+        "END\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    const statement = languageMode.tree.rootNode.descendantsOfType("variable_statement")[1];
+    const variables = [
+      ...statement.descendantsOfType("hash_variable"),
+      ...statement.descendantsOfType("dollar_variable"),
+    ];
+    expect(variables.map((node) => node.text)).toEqual([
+      "#POS",
+      "#L_1",
+      "#D_1",
+      "#L_2",
+      "#L_1",
+      "#D_1",
+      "#I",
+      "#L_N",
+      "$(OFFSET)",
+    ]);
+    for (const variable of variables) {
+      expect(editor.scopeDescriptorForBufferPosition(variable.startPosition).toString()).toContain(
+        "variable.other.sofistik",
+      );
+    }
+
+    const strings = statement.descendantsOfType("string");
+    expect(strings.map((node) => node.text)).toEqual(['"double"', "'single'"]);
+    expect(editor.scopeDescriptorForBufferPosition(strings[0].startPosition).toString()).toContain(
+      "string.double.sofistik",
+    );
+    expect(editor.scopeDescriptorForBufferPosition(strings[1].startPosition).toString()).toContain(
+      "string.single.sofistik",
+    );
+
+    const expression = "#L_1+#D_1+(#L_2-#L_1-#D_1)*(#I/(#L_N-1))";
+    const expressionStart = editor.getText().indexOf(expression);
+    for (const token of ["+", "-", "*", "/", "(", ")"]) {
+      const position = editor
+        .getBuffer()
+        .positionForCharacterIndex(expressionStart + expression.indexOf(token));
+      const scope = editor.scopeDescriptorForBufferPosition(position).toString();
+      expect(scope).not.toContain("variable.other.sofistik");
+      expect(scope).not.toContain("string.");
+      expect(scope).not.toContain("keyword.operator.sofistik");
+      expect(scope).not.toContain("entity.name.function.sofistik");
+    }
+  });
+
+  it("highlights variables and quoted strings inside TEXT blocks", async () => {
+    await setUp(
+      "+PROG AQUA\n" +
+        "<TEXT,FILE=+#outfile,PATH=$(folder),TITLE='PP'>\n" +
+        "plain #title $(project) \"double\" 'single'\n" +
+        "<\\TEXT>\nEND\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    for (const variable of ["#outfile", "$(folder)", "#title", "$(project)"]) {
+      expect(scopeFor(variable, 1)).toContain("variable.other.sofistik");
+    }
+    expect(scopeFor("'PP'", 1)).toContain("string.single.sofistik");
+    expect(scopeFor('"double"', 1)).toContain("string.double.sofistik");
+    expect(scopeFor("'single'", 1)).toContain("string.single.sofistik");
+    expect(scopeFor("plain", 1)).toContain("string.unquoted.sofistik");
+    expect(scopeFor("<TEXT", 1)).toContain("support.function.sofistik");
+    expect(scopeFor(">\nplain", 0)).toContain("support.function.sofistik");
+    expect(scopeFor("<\\TEXT>", 1)).toContain("support.function.sofistik");
   });
 
   it("highlights variables but not operators in a flat preprocessor condition", async () => {

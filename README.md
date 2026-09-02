@@ -2,16 +2,15 @@
 
 Syntax highlighting for SOFiSTiK structural analysis software.
 
-Provides grammars for input and output files with multi-version keyword support and a programmatic keywords service.
+Provides an input grammar with multi-version keyword support and a programmatic keywords service. The central `language-log` package supplies the output grammar.
 
 > **NOTE**: This package is not an official SOFiSTiK product and is not affiliated with or endorsed by SOFiSTiK AG.
 
 ## Features
 
-- **Grammars**: provides both Tree-sitter and TextMate grammars.
+- **Grammars**: provides the Tree-sitter grammar for SOFiSTiK input files.
 - **Syntax highlighting**: complete support for `.dat`, `.gra`, `.grb` and `.results` input files.
-- **RAW file support**: grammar for output files `.erg`, `.lst`, `.prt` and `.urs`.
-- **DEF file support**: grammar for `sofistik.def` variable files.
+- **Output file support**: the central `language-log` package provides the grammar for `.erg`, `.lst`, `.prt` and `.urs` files.
 - **Multi-version**: keywords for SOFiSTiK versions 2018-2026.
 - **Multi-language**: English and German keyword sets.
 - **Keywords service**: programmatic access to keywords for other packages.

@@ -41,8 +41,9 @@
 ; TEXT AND METADATA
 ; =================
 
-[(text_start) (text_end)] @support.function.sofistik
+[(text_delimiter) (text_end)] @support.function.sofistik
 (text_content) @string.unquoted.sofistik
+(text_fragment) @string.unquoted.sofistik
 (metadata) @meta.sofistik
 
 ((metadata) @meta.version.sofistik
