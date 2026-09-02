@@ -49,4 +49,19 @@ describe("language-sofistik", () => {
     editor.toggleLineCommentsForBufferRows(0, 0);
     expect(editor.lineTextForBufferRow(0)).toBe("$ +PROG AQUA");
   });
+
+  it("renders record terminators with the syntax keyword color", () => {
+    const terminator = document.createElement("span");
+    terminator.className = "syntax--sofistik syntax--punctuation syntax--terminator syntax--record";
+    const keywordColor = document.createElement("span");
+    keywordColor.style.color = "var(--syntax-color-keyword)";
+    document.body.append(terminator, keywordColor);
+
+    try {
+      expect(getComputedStyle(terminator).color).toBe(getComputedStyle(keywordColor).color);
+    } finally {
+      terminator.remove();
+      keywordColor.remove();
+    }
+  });
 });

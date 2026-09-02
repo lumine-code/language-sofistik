@@ -1,4 +1,8 @@
 .syntax--sofistik {
+  &.syntax--punctuation.syntax--terminator.syntax--record {
+    color: var(--syntax-color-keyword);
+  }
+
   &.syntax--meta {
     font-weight: bold;
 
