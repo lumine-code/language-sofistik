@@ -2,7 +2,7 @@
 
 Syntax highlighting for SOFiSTiK structural analysis software.
 
-Provides an input grammar with multi-version keyword support and a programmatic keywords service. The central `language-log` package supplies the output grammar.
+Provides a Tree-sitter input grammar for SOFiSTiK CADINP files. The central `language-log` package supplies the output grammar.
 
 > **NOTE**: This package is not an official SOFiSTiK product and is not affiliated with or endorsed by SOFiSTiK AG.
 
@@ -10,10 +10,9 @@ Provides an input grammar with multi-version keyword support and a programmatic 
 
 - **Grammars**: provides the Tree-sitter grammar for SOFiSTiK input files.
 - **Syntax highlighting**: complete support for `.dat`, `.gra`, `.grb` and `.results` input files.
+- **Structure**: provides folding and outline symbols for programs, commands and control blocks.
 - **Output file support**: the central `language-log` package provides the grammar for `.erg`, `.lst`, `.prt` and `.urs` files.
-- **Multi-version**: keywords for SOFiSTiK versions 2018-2026.
-- **Multi-language**: English and German keyword sets.
-- **Keywords service**: programmatic access to keywords for other packages.
+- **Language coverage**: recognizes English and German CADINP vocabulary from supported SOFiSTiK releases.
 - **Snippets**: `prog` snippet scaffolds a PROG block with HEAD and END.
 
 ## Installation
@@ -22,7 +21,6 @@ To install `language-sofistik` search for it in the Install pane of the Lumine s
 
 ## Services
 
-- [`sofistik.keywords`](docs/sofistik.keywords.md): provided to expose SOFiSTiK keyword data — modules, commands, parameters and enum values — for a given release and language.
 - `todo.injection`: consumed to highlight TODO-style annotations in comments.
 
 ## Contributing

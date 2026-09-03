@@ -1,10 +1,8 @@
 const path = require("path");
 
 describe("language-sofistik", () => {
-  let mainModule;
-
   beforeEach(async () => {
-    ({ mainModule } = await lumine.packages.activatePackage("language-sofistik"));
+    await lumine.packages.activatePackage("language-sofistik");
   });
 
   it("selects Tree-sitter for input files", () => {
@@ -31,34 +29,6 @@ describe("language-sofistik", () => {
 
     expect(languageMode.tree.rootNode.hasError).toBe(false);
     expect(languageMode.tree.rootNode.descendantsOfType("program").length).toBe(6);
-  });
-
-  it("provides versioned keyword data", () => {
-    const service = mainModule.provideSofistikKeywords();
-    const context = service.provider.forRelease("2026", "en");
-
-    expect(service.version).toBe("1.0.0");
-    expect(service.provider.getAvailableVersions()).toContain("2026");
-    expect(context.getVersion()).toBe("2026");
-    expect(context.getModuleNames()).toContain("AQUA");
-  });
-
-  it("resolves public executable names to internal schema modules", () => {
-    const context = mainModule.provideSofistikKeywords().provider.forRelease("2026", "en");
-    const moduleNames = context.getModuleNames();
-
-    for (const [publicName, schemaName, commandName] of [
-      ["DBMERG", "DBME", "CDB"],
-      ["STAR2", "STAR", "DESI"],
-      ["TUNARS", "TUNA", "GEO"],
-    ]) {
-      expect(moduleNames).toContain(publicName);
-      expect(context.getModuleCommands(publicName)).toEqual(context.getModuleCommands(schemaName));
-      expect(context.getModuleCommands(publicName.toLowerCase())).toContain(commandName);
-      expect(context.getCommandSchema(publicName, commandName)).toEqual(
-        context.getCommandSchema(schemaName, commandName),
-      );
-    }
   });
 
   it("uses a dollar sign for line comments", async () => {

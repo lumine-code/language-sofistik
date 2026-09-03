@@ -24,11 +24,8 @@
   ],
   "main": "./lib/main",
   "files": [
-    "commands",
-    "docs",
     "grammars",
     "lib",
-    "schema",
     "settings",
     "snippets",
     "spec",
@@ -36,18 +33,9 @@
   ],
   "scripts": {
     "test": "lumine --test spec",
-    "test:build": "python -m unittest discover -s build -p \"test_*.py\"",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
-  },
-  "providedServices": {
-    "sofistik.keywords": {
-      "description": "Resolves SOFiSTiK keywords, modules, and language for a file.",
-      "versions": {
-        "1.0.0": "provideSofistikKeywords"
-      }
-    }
   },
   "consumedServices": {
     "todo.injection": {
