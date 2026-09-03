@@ -87,6 +87,35 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     );
   });
 
+  it("highlights executable module aliases with their schema commands", async () => {
+    await setUp(
+      "+prog dbmerg\nhead Copy results\ncdb from 1\nend\n" +
+        "+prog star2\nbeme am1 1\nend\n" +
+        "+prog tunars\ngeo no 1\nend\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    const root = languageMode.tree.rootNode;
+    expect(root.descendantsOfType("invalid_module").length).toBe(0);
+    expect(root.descendantsOfType("invalid_command").length).toBe(0);
+
+    const modules = root.descendantsOfType("module_name");
+    expect(modules.map((node) => node.text.toUpperCase())).toEqual(["DBMERG", "STAR2", "TUNARS"]);
+    for (const module of modules) {
+      expect(editor.scopeDescriptorForBufferPosition(module.startPosition).toString()).toContain(
+        "support.class.sofistik",
+      );
+    }
+
+    const commands = root.descendantsOfType("command_name");
+    expect(commands.map((node) => node.text.toUpperCase())).toEqual(["HEAD", "CDB", "BEME", "GEO"]);
+    for (const command of commands) {
+      expect(editor.scopeDescriptorForBufferPosition(command.startPosition).toString()).toContain(
+        "keyword.control.sofistik",
+      );
+    }
+  });
+
   it("highlights TEMPLATE commands and END records", async () => {
     await setUp("+PROG TEMPLATE\nHEAD variables\nEND\n");
 
