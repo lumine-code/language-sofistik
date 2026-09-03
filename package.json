@@ -56,9 +56,6 @@
       }
     }
   },
-  "grammars": [
-    "grammars/sofistik.json"
-  ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.9.1",
