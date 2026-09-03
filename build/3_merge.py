@@ -24,6 +24,12 @@ import json
 import shutil
 from pathlib import Path
 
+MODULE_ALIASES = {
+    "DBMERG": "DBME",
+    "STAR2": "STAR",
+    "TUNARS": "TUNA",
+}
+
 
 def convert_params(params_obj):
     """
@@ -113,6 +119,7 @@ def main():
     # Write meta.json
     meta = {
         "versions": versions,
+        "moduleAliases": MODULE_ALIASES,
     }
     meta_file = commands_dir / 'meta.json'
     with open(meta_file, 'w', encoding='utf-8') as f:
@@ -134,6 +141,7 @@ def main():
     schema_meta = {
         "versions": versions,
         "languages": ["de", "en"],
+        "moduleAliases": MODULE_ALIASES,
         "unresolvedRedirects": unresolved_redirects,
     }
     with open(schema_dir / 'meta.json', 'w', encoding='utf-8') as f:

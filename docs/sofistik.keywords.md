@@ -108,6 +108,8 @@ Both arguments are optional and independently defaulted: an unknown release fall
 
 Module and command names are the coordinates for everything else. Resolve them from `getModuleNames` and `getModuleCommands` rather than hardcoding, since the set varies by release.
 
+`getModuleNames` includes the public executable aliases `DBMERG`, `STAR2` and `TUNARS`; every module lookup accepts those names and resolves them to the internal `.err` identifiers `DBME`, `STAR` and `TUNA`.
+
 `getCommandSchema` performs an exact module/command lookup; it never falls back to `BASIC`. A consumer that accepts common commands asks the active module first and then explicitly asks `BASIC`. Names are normalized to uppercase for lookup.
 
 Schema positions are one-based and include placeholders. Placeholder slots always have `name: null`, while repeated item names remain repeated slots. `kind` records the marker used by the `.err` definition; any slot kind can carry enum values when the catalogue assigns values by position. Redirected values are resolved into `enumValues` when their target has values, and `enumRedirect` remains as provenance.
