@@ -679,6 +679,65 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(root.descendantsOfType("apply_statement").length).toBe(0);
   });
 
+  it("keeps highlighting and folds scoped when END is missing", async () => {
+    await setUp("+PROG AQUA\nHEAD first\n+PROG ASE\nHEAD second\nEND\n");
+
+    const root = languageMode.tree.rootNode;
+    const programs = root.descendantsOfType("program");
+    expect(root.hasError).toBe(false);
+    expect(root.toString()).not.toContain("(ERROR");
+    expect(root.toString()).not.toContain("(MISSING");
+    expect(programs.length).toBe(2);
+    expect(programs[0].descendantsOfType("unterminated_input_block").length).toBe(1);
+
+    for (const program of programs) {
+      const module = program.descendantsOfType("module_name")[0];
+      const command = program.descendantsOfType("command_name")[0];
+      expect(scopeForNode(module, 1)).toContain("support.class.sofistik");
+      expect(scopeForNode(command, 1)).toContain("keyword.control.sofistik");
+    }
+
+    expect(editor.isFoldableAtBufferRow(0)).toBe(true);
+    expectFoldAt(0, [0, 1]);
+  });
+
+  it("keeps control highlighting after repeated END records", async () => {
+    await setUp(
+      "+PROG ASE\nHEAD example\nEND\nLOOP#i ASE_ITER ; STO#iter50(#i) #ASE_ITER(#i) ; ENDLOOP\nEND\nLC 5002\nEND\n",
+    );
+
+    const root = languageMode.tree.rootNode;
+    const program = root.descendantsOfType("program")[0];
+    expect(root.hasError).toBe(false);
+    expect(root.descendantsOfType("program").length).toBe(1);
+    expect(program.descendantsOfType("end_record").length).toBe(3);
+    expect(program.descendantsOfType("loop_block").length).toBe(1);
+    for (const text of ["LOOP#i", "ENDLOOP", "STO#iter50", "LC 5002"]) {
+      expect(scopeFor(text, 1)).toContain("keyword.control.sofistik");
+    }
+    for (const variable of ["#i", "#iter50", "#ASE_ITER"]) {
+      expect(scopeFor(variable, 1)).toContain("variable.other.sofistik");
+    }
+  });
+
+  it("keeps command words inside legacy multiline text unscoped", async () => {
+    await setUp(
+      '+PROG SOFIMSHA\nTXBB Analysis\nMASS #A "$(B)" remains prose\nTXEN\nPAGE UNII 0\nEND\n',
+    );
+
+    const root = languageMode.tree.rootNode;
+    expect(root.hasError).toBe(false);
+    expect(root.descendantsOfType("command_name").map((node) => node.text)).toEqual([
+      "TXBB",
+      "TXEN",
+      "PAGE",
+    ]);
+    expect(scopeFor("MASS", 1)).not.toContain("keyword.control.sofistik");
+    expect(scopeFor("#A", 1)).toContain("variable.other.sofistik");
+    expect(scopeFor("$(B)", 2)).toContain("variable.other.sofistik");
+    expect(scopeFor('"$(B)"', 0)).toContain("string.double.sofistik");
+  });
+
   it("parses, highlights, and folds PICT blocks in a program body and tail", async () => {
     await setUp(MODERN_SYNTAX_FIXTURE);
 
