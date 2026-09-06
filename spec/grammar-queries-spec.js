@@ -1,7 +1,12 @@
+const fs = require("fs");
 const path = require("path");
 
 const PACKAGE_NAME = "language-sofistik";
 const EXPECTED_GRAMMARS = 1;
+const HIGHLIGHTS_QUERY = fs.readFileSync(
+  path.join(__dirname, "..", "grammars", "sofistik-highlights.scm"),
+  "utf8",
+);
 
 describe(`${PACKAGE_NAME} Tree-sitter queries`, () => {
   let grammars;
@@ -33,5 +38,19 @@ describe(`${PACKAGE_NAME} Tree-sitter queries`, () => {
       }
     }
     expect(failures).toEqual([]);
+  });
+
+  it("dispatches string scopes through named nodes rather than text predicates", () => {
+    expect(HIGHLIGHTS_QUERY).not.toContain("((string)");
+    for (const type of [
+      "single_quoted_string",
+      "double_quoted_string",
+      "single_doubled_quoted_string",
+      "double_doubled_quoted_string",
+      "unterminated_single_quoted_string",
+      "unterminated_double_quoted_string",
+    ]) {
+      expect(HIGHLIGHTS_QUERY).toContain(`(${type})`);
+    }
   });
 });

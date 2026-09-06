@@ -9,6 +9,10 @@ const FLAT_PREPROCESSOR_FIXTURE = fs.readFileSync(
   path.join(__dirname, "fixtures", "flat-preprocessor.dat"),
   "utf8",
 );
+const MODERN_SYNTAX_FIXTURE = fs.readFileSync(
+  path.join(__dirname, "fixtures", "modern-syntax.dat"),
+  "utf8",
+);
 
 describe("SOFiSTiK Tree-sitter grammar", () => {
   let editor;
@@ -28,6 +32,11 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     const index = editor.getText().indexOf(needle);
     expect(index).not.toBe(-1);
     const position = editor.getBuffer().positionForCharacterIndex(index + offset);
+    return editor.scopeDescriptorForBufferPosition(position).toString();
+  };
+
+  const scopeForNode = (node, offset = 0) => {
+    const position = editor.getBuffer().positionForCharacterIndex(node.startIndex + offset);
     return editor.scopeDescriptorForBufferPosition(position).toString();
   };
 
@@ -523,6 +532,179 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       expect(editor.scopeDescriptorForBufferPosition(command.startPosition).toString()).toContain(
         "keyword.control.sofistik",
       );
+    }
+  });
+
+  it("highlights named quoted and unterminated string variants", async () => {
+    await setUp(MODERN_SYNTAX_FIXTURE);
+
+    const root = languageMode.tree.rootNode;
+    const expected = [
+      ["single_doubled_quoted_string", "''single doubled''", "string.single.sofistik"],
+      ["double_doubled_quoted_string", '""double doubled""', "string.double.sofistik"],
+      ["single_quoted_string", "'single $(one)'", "string.single.sofistik"],
+      ["double_quoted_string", '"double $(two)"', "string.double.sofistik"],
+      ["unterminated_single_quoted_string", "'unterminated", "string.single.sofistik"],
+      ["unterminated_double_quoted_string", '"unterminated', "string.double.sofistik"],
+    ];
+
+    for (const [type, text, expectedScope] of expected) {
+      const node = root.descendantsOfType(type).find((candidate) => candidate.text === text);
+      expect(node).toBeDefined();
+      for (const offset of [0, 1, text.length - 1]) {
+        const scope = scopeForNode(node, offset);
+        expect(scope).toContain(expectedScope);
+        expect(scope).not.toContain("invalid.illegal.sofistik");
+      }
+    }
+
+    for (const variable of ["$(one)", "$(two)"]) {
+      expect(scopeFor(variable, 2)).toContain("variable.other.sofistik");
+    }
+    for (const bareValue of ["BAUMANN'S", "f'=", "tent'"]) {
+      expect(scopeFor(bareValue, 1)).not.toContain("string.");
+    }
+  });
+
+  it("highlights CDB, references, numbers, and recursive hash names by node type", async () => {
+    await setUp(MODERN_SYNTAX_FIXTURE);
+
+    const root = languageMode.tree.rootNode;
+    const cdbStatements = root.descendantsOfType("cdb_statement");
+    expect(cdbStatements.map((statement) => statement.childForFieldName("keyword").text)).toEqual([
+      "@KEY",
+      "@CDB",
+    ]);
+    for (const statement of cdbStatements) {
+      expect(scopeForNode(statement.childForFieldName("keyword"), 1)).toContain(
+        "keyword.control.sofistik",
+      );
+    }
+
+    const references = root.descendantsOfType("at_reference");
+    expect(references.map((node) => node.text)).toEqual(["@name", "@1", "@-2", "@(#A+1)"]);
+    for (const reference of references) {
+      expect(scopeForNode(reference, 1)).toContain("variable.other.sofistik");
+    }
+
+    const invalidReference = root.descendantsOfType("invalid_at_reference")[0];
+    expect(invalidReference.text).toBe("@???");
+    expect(scopeForNode(invalidReference, 1)).not.toContain("invalid.illegal.sofistik");
+    expect(scopeForNode(invalidReference, 1)).not.toContain("variable.other.sofistik");
+
+    const numericValues = [
+      ...root.descendantsOfType("number"),
+      ...root.descendantsOfType("number_list"),
+    ];
+    expect(numericValues.map((node) => node.text)).toContain("1,2,3");
+    for (const value of numericValues) {
+      expect(scopeForNode(value)).toContain("constant.numeric.sofistik");
+    }
+    expect(root.descendantsOfType("punctuated_value").map((node) => node.text)).toEqual([
+      ":AXIS",
+      "~OR",
+      "\\REF",
+    ]);
+
+    const outerVariable = root
+      .descendantsOfType("hash_variable")
+      .find((node) => node.text === "#BN(#BN(0))");
+    expect(outerVariable).toBeDefined();
+    expect(outerVariable.childForFieldName("arguments").type).toBe("hash_arguments");
+    expect(
+      outerVariable
+        .childForFieldName("arguments")
+        .descendantsOfType("hash_variable")
+        .map((node) => node.text),
+    ).toEqual(["#BN(0)"]);
+
+    for (const name of root.descendantsOfType("hash_variable_name")) {
+      expect(scopeForNode(name, 1)).toContain("variable.other.sofistik");
+    }
+
+    const formatted = root.descendantsOfType("formatted_value")[0];
+    expect(formatted.text).toBe("#(#Nold,8.1)");
+    expect(formatted.childForFieldName("value").type).toBe("parenthesized_expression");
+    expect(scopeForNode(formatted)).not.toContain("variable.other.sofistik");
+
+    const literalHash = root.descendantsOfType("literal_hash")[0];
+    expect(literalHash.text).toBe("#");
+    expect(scopeForNode(literalHash)).not.toContain("variable.other.sofistik");
+    expect(scopeForNode(literalHash)).not.toContain("invalid.illegal.sofistik");
+  });
+
+  it("keeps TEMPLATE controls and tolerated syntax in named nodes", async () => {
+    await setUp(MODERN_SYNTAX_FIXTURE);
+
+    const root = languageMode.tree.rootNode;
+    expect(root.hasError).toBe(false);
+    expect(root.toString()).not.toContain("(ERROR");
+    expect(root.toString()).not.toContain("(MISSING");
+    expect(root.descendantsOfType("invalid_command").length).toBe(0);
+    expect(root.descendantsOfType("dynamic_command_name").map((node) => node.text)).toEqual([
+      "WHATEVER",
+      "CUSTOM",
+    ]);
+    expect(root.descendantsOfType("variable_keyword").map((node) => node.text)).toEqual(["LET"]);
+    expect(root.descendantsOfType("command_name").map((node) => node.text)).toContain("KOPF");
+
+    const orphanTypes = [
+      "orphan_elseif_record",
+      "orphan_else_record",
+      "orphan_endif_record",
+      "orphan_endloop_record",
+      "orphan_text_end",
+      "orphan_picture_end",
+    ];
+    for (const type of orphanTypes) {
+      const orphan = root.descendantsOfType(type)[0];
+      expect(orphan).toBeDefined();
+      expect(scopeForNode(orphan, 1)).not.toContain("invalid.illegal.sofistik");
+    }
+
+    for (const type of [
+      "orphan_elseif_record",
+      "orphan_else_record",
+      "orphan_endif_record",
+      "orphan_endloop_record",
+    ]) {
+      const keyword = root.descendantsOfType(type)[0].childForFieldName("keyword");
+      expect(scopeForNode(keyword, 1)).toContain("keyword.control.sofistik");
+    }
+    for (const type of ["orphan_text_end", "orphan_picture_end"]) {
+      const delimiter = root.descendantsOfType(type)[0].childForFieldName("delimiter");
+      expect(scopeForNode(delimiter, 1)).toContain("support.function.sofistik");
+    }
+
+    expect(root.descendantsOfType("apply_statement").length).toBe(0);
+  });
+
+  it("parses, highlights, and folds PICT blocks in a program body and tail", async () => {
+    await setUp(MODERN_SYNTAX_FIXTURE);
+
+    const root = languageMode.tree.rootNode;
+    const program = root.descendantsOfType("program")[0];
+    const pictures = root.descendantsOfType("picture_block");
+    expect(pictures.length).toBe(2);
+    expect(pictures[0].parent.type).toBe("input_block");
+    expect(
+      program
+        .childrenForFieldName("tail")
+        .some(
+          (node) => node.type === "picture_block" && node.startIndex === pictures[1].startIndex,
+        ),
+    ).toBe(true);
+    expect(
+      pictures.map((picture) => picture.descendantsOfType("command_name").map((node) => node.text)),
+    ).toEqual([["KOPF"], ["HEAD"]]);
+
+    for (const picture of pictures) {
+      for (const delimiter of picture.descendantsOfType("picture_delimiter")) {
+        const scope = scopeForNode(delimiter, 1);
+        expect(scope).toContain("support.function.sofistik");
+        expect(scope).not.toContain("invalid.illegal.sofistik");
+      }
+      expect(editor.isFoldableAtBufferRow(picture.startPosition.row)).toBe(true);
     }
   });
 

@@ -3,6 +3,8 @@
   (#set! fold.endAt endPosition)
   (#set! fold.adjustToEndOfPreviousRow true))
 
+(picture_block) @fold
+
 (preprocessor_define_header) @fold.start
 (preprocessor_enddef_record) @fold.end
 

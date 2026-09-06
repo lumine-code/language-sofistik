@@ -1,0 +1,27 @@
+@ SOFiSTiK 2026
++PROG TEMPLATE
+@KEY SECRET ; IF #A > 0
+KOPF ''single doubled'' ""double doubled"" 'single $(one)' "double $(two)"
+WHATEVER @name,@1,@-2,@(#A+1),@??? 1 -1.5 2e3 1,2,3 :AXIS ~OR \REF
+ENDIF
+@CDB 7
+HEAD #BN(#BN(0)) #(#Nold,8.1) # literal BAUMANN'S f'= tent' +apply
+LOOP 2
+CUSTOM 4
+ENDLOOP
+LET#RESULT 5
+HEAD 'unterminated
+HEAD "unterminated
+ELSEIF #orphan
+ELSE orphan
+ENDIF
+ENDLOOP 3
+</TEXT>
+</PICT>
+<PICT>
+KOPF #inside 'body'
+</PICT>
+END
+<PICT>
+HEAD $(tail) "tail"
+</PICT>

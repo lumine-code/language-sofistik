@@ -17,6 +17,7 @@
 
 (control_keyword) @keyword.control.sofistik
 (variable_keyword) @keyword.control.sofistik
+(cdb_keyword) @keyword.control.sofistik
 (preprocessor_keyword) @entity.name.section.sofistik
 (preprocessor_name) @string.other.sofistik
 
@@ -27,22 +28,28 @@
 (number_list) @constant.numeric.sofistik
 (unit) @constant.other.sofistik
 
-((string) @string.double.sofistik
-  (#match? @string.double.sofistik "^\""))
+[(single_quoted_string)
+ (single_doubled_quoted_string)
+ (unterminated_single_quoted_string)] @string.single.sofistik
 
-((string) @string.single.sofistik
-  (#match? @string.single.sofistik "^'"))
+[(double_quoted_string)
+ (double_doubled_quoted_string)
+ (unterminated_double_quoted_string)] @string.double.sofistik
 
 (preprocessor_directive
   argument: (_) @string.other.sofistik)
 
 (dollar_variable) @variable.other.sofistik
-(hash_variable) @variable.other.sofistik
+(hash_variable
+  name: (hash_variable_name) @variable.other.sofistik)
+(at_reference) @variable.other.sofistik
 
 ; TEXT AND METADATA
 ; =================
 
-[(text_delimiter) (text_end)] @support.function.sofistik
+[(text_delimiter)
+ (text_end)
+ (picture_delimiter)] @support.function.sofistik
 (text_content) @string.unquoted.sofistik
 (text_fragment) @string.unquoted.sofistik
 (metadata) @meta.sofistik
