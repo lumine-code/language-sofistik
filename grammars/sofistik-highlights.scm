@@ -60,4 +60,5 @@
 ; COMMENTS
 ; ========
 
-(comment) @comment.line.sofistik
+[(comment)
+ (continuation)] @comment.line.sofistik

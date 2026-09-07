@@ -200,6 +200,23 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
+  it("highlights comma-separated strings and punctuated item names", async () => {
+    await setUp(
+      "+PROG TEMPLATE\n" +
+        "LET#literal 'Literal0','Literal1'\n" +
+        "END\n" +
+        "+PROG AQUA\n" +
+        "SMAT NO 111 P+ 1 P- -1\n" +
+        "END\n",
+    );
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(scopeFor("'Literal0'", 1)).toContain("string.single.sofistik");
+    expect(scopeFor("'Literal1'", 1)).toContain("string.single.sofistik");
+    expect(scopeFor("P+", 1)).toContain("entity.name.function.sofistik");
+    expect(scopeFor("P-", 1)).toContain("entity.name.function.sofistik");
+  });
+
   it("highlights record terminators but not semicolons inside strings or comments", async () => {
     await setUp("+PROG AQUA\nHEAD 'a;b'; HEAD next ! comment ; remains text\nEND\n");
 
@@ -218,6 +235,13 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(stringScope).not.toContain("punctuation.terminator.record.sofistik");
     expect(commentScope).toContain("comment.line.sofistik");
     expect(commentScope).not.toContain("punctuation.terminator.record.sofistik");
+  });
+
+  it("highlights continuation comments", async () => {
+    await setUp("+PROG AQUA\nHEAD first $$ continued note\nEND\n");
+
+    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    expect(scopeFor("$$ continued note", 1)).toContain("comment.line.sofistik");
   });
 
   it("highlights SYS inside and outside a flat preprocessor condition", async () => {
