@@ -373,6 +373,26 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor(" = ", 1)).not.toContain("keyword.operator.sofistik");
   });
 
+  it("highlights variables in DEFINE bodies before the first program", async () => {
+    await setUp(
+      "#define ella-lanes\n" +
+        "lane t.1 $(lanes-props)\n" +
+        "lane t.2 $(lanes-props)\n" +
+        "lane t.3 $(lanes-props)\n" +
+        "lane t.4 $(lanes-props)\n" +
+        "#enddef\n",
+    );
+
+    const root = languageMode.tree.rootNode;
+    expect(root.hasError).toBe(false);
+    expect(root.descendantsOfType("unscoped_record").length).toBe(4);
+    const variables = root.descendantsOfType("dollar_variable");
+    expect(variables.map((node) => node.text)).toEqual(Array(4).fill("$(lanes-props)"));
+    for (const variable of variables) {
+      expect(scopeForNode(variable, 2)).toContain("variable.other.sofistik");
+    }
+  });
+
   it("highlights preprocessor directive arguments by value type", async () => {
     await setUp(
       '#INCLUDE maxima-supp\n#INCLUDE "$(project).dat"\n#INCLUDE $(include_path)\n#INCLUDE #i_results\n',
