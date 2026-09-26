@@ -8,7 +8,6 @@
 (module_name) @support.class.sofistik
 (program_option) @comment.line.sofistik
 (command_name) @keyword.control.sofistik
-(dynamic_command_name) @keyword.control.sofistik
 (item_name) @entity.name.function.sofistik
 ";" @punctuation.terminator.record.sofistik
 

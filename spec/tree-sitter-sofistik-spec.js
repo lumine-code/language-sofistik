@@ -320,6 +320,51 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("! note", 1)).toContain("comment.line.sofistik");
   });
 
+  it("highlights dotted DEFINE names without extending STO or LET variables", async () => {
+    await setUp(
+      "#define ella-dyn-t.1-1=1.291354058607521\n" +
+        "#define ella-linf-t.1\n" +
+        "+PROG TEMPLATE\n" +
+        "STO#plain.name 1\n" +
+        "LET#other.name 2\n" +
+        "END\n",
+    );
+
+    const root = languageMode.tree.rootNode;
+    expect(root.hasError).toBe(false);
+    const defineNames = root.descendantsOfType("preprocessor_name");
+    expect(defineNames.map((node) => node.text)).toEqual(["ella-dyn-t.1-1", "ella-linf-t.1"]);
+    for (const name of defineNames) {
+      expect(scopeForNode(name, name.text.indexOf(".") + 1)).toContain("string.other.sofistik");
+    }
+
+    const variables = root.descendantsOfType("hash_variable");
+    expect(variables.map((node) => node.text)).toEqual(["#plain", "#other"]);
+    for (const variable of variables) {
+      expect(scopeForNode(variable, 1)).toContain("variable.other.sofistik");
+    }
+    for (const suffix of root
+      .descendantsOfType("bare_value")
+      .filter((node) => node.text === ".name")) {
+      expect(scopeForNode(suffix, 1)).not.toContain("variable.other.sofistik");
+    }
+  });
+
+  it("does not highlight unknown TEMPLATE records as commands", async () => {
+    await setUp("+PROG TEMPLATE\nGRP2 1\nasdasdasdas 2\nTEST OPT1 1\nEND\n");
+
+    const root = languageMode.tree.rootNode;
+    expect(root.hasError).toBe(false);
+    expect(root.descendantsOfType("invalid_command").map((node) => node.text)).toEqual([
+      "GRP2",
+      "asdasdasdas",
+    ]);
+    expect(root.descendantsOfType("command_name").map((node) => node.text)).toEqual(["TEST"]);
+    expect(scopeFor("GRP2", 1)).not.toContain("keyword.control.sofistik");
+    expect(scopeFor("asdasdasdas", 1)).not.toContain("keyword.control.sofistik");
+    expect(scopeFor("TEST", 1)).toContain("keyword.control.sofistik");
+  });
+
   it("highlights a dollar variable on the right side of a definition", async () => {
     await setUp("#DEFINE project = $(probase)\n");
 
@@ -657,15 +702,14 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeForNode(literalHash)).not.toContain("invalid.illegal.sofistik");
   });
 
-  it("keeps TEMPLATE controls and tolerated syntax in named nodes", async () => {
+  it("marks unknown TEMPLATE commands invalid while keeping tolerated syntax in named nodes", async () => {
     await setUp(MODERN_SYNTAX_FIXTURE);
 
     const root = languageMode.tree.rootNode;
     expect(root.hasError).toBe(false);
     expect(root.toString()).not.toContain("(ERROR");
     expect(root.toString()).not.toContain("(MISSING");
-    expect(root.descendantsOfType("invalid_command").length).toBe(0);
-    expect(root.descendantsOfType("dynamic_command_name").map((node) => node.text)).toEqual([
+    expect(root.descendantsOfType("invalid_command").map((node) => node.text)).toEqual([
       "WHATEVER",
       "CUSTOM",
     ]);
