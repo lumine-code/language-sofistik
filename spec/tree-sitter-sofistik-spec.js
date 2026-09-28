@@ -43,6 +43,16 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   const foldedBufferRanges = () =>
     editor.displayLayer.foldRangesSnapshot().map((range) => [range.start.row, range.end.row]);
 
+  const rootNode = (targetEditor = editor) => {
+    const root = targetEditor.getSyntaxNodeAtBufferPosition([0, 0], (node) => node.parent == null);
+    expect(root).not.toBeNull();
+    return root;
+  };
+
+  const expectNoSyntaxError = async (targetEditor = editor) => {
+    expect((await targetEditor.getSyntaxDiagnostics()).hasError).toBe(false);
+  };
+
   const expectFoldableRows = (foldableRows, otherRows) => {
     for (const row of foldableRows) expect(editor.isFoldableAtBufferRow(row)).toBe(true);
     for (const row of otherRows) expect(editor.isFoldableAtBufferRow(row)).toBe(false);
@@ -61,8 +71,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("builds nested program, command, record, and item nodes", async () => {
     await setUp("+PROG SOFIMSHA\nNODE 1 X 0 Y 0\n  2 X 1 Y 0\nEND\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    const program = languageMode.tree.rootNode.descendantsOfType("program")[0];
+    await expectNoSyntaxError();
+    const program = rootNode().descendantsOfType("program")[0];
     const header = program.childForFieldName("header");
     const command = program.descendantsOfType("command")[0];
     expect(header.childForFieldName("module").text).toBe("SOFIMSHA");
@@ -103,8 +113,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "+prog tunars\ngeo no 1\nend\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    const root = languageMode.tree.rootNode;
+    await expectNoSyntaxError();
+    const root = rootNode();
     expect(root.descendantsOfType("invalid_module").length).toBe(0);
     expect(root.descendantsOfType("invalid_command").length).toBe(0);
 
@@ -139,7 +149,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("treats program options as comments and enum-like values as plain text", async () => {
     await setUp("+PROG TENDON URS:9\nAXES VAL3 11 KIND QUAD\nAXES VAL3 12 quad\nEND\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(scopeFor("+PROG", 1)).toContain("support.class.sofistik");
     expect(scopeFor("TENDON", 1)).toContain("support.class.sofistik");
     expect(scopeFor("URS:9", 1)).toContain("comment.line.sofistik");
@@ -154,8 +164,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "$PROG AQB\n#DEFINE AQB_CTRL\nSEIT UNIE 0\n#ENDDEF\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    expect(languageMode.tree.rootNode.descendantsOfType("invalid_command").length).toBe(0);
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("invalid_command").length).toBe(0);
     for (const command of ["PAGE", "SEIT"]) {
       expect(scopeFor(command, 1)).toContain("keyword.control.sofistik");
     }
@@ -169,7 +179,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       "+PROG SOFILOAD\nLC 1\nLINE QGRP 'PP' TYPE PG P 1.51*(#p_z3+0.36*0.06*26)[N/m] X1 0 X2 1\nEND\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(scopeFor("(#p_z3", 0)).not.toContain("entity.name.function.sofistik");
     expect(scopeFor("+0.36", 0)).not.toContain("entity.name.function.sofistik");
     expect(scopeFor("[N/m]", 1)).toContain("constant.other.sofistik");
@@ -183,8 +193,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    const strings = languageMode.tree.rootNode.descendantsOfType("string");
+    await expectNoSyntaxError();
+    const strings = rootNode().descendantsOfType("string");
     expect(strings.map((node) => node.text)).toEqual([
       '"Sum_11 G1 activating new"',
       "'Sum_12 G2 activating old'",
@@ -210,7 +220,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(scopeFor("'Literal0'", 1)).toContain("string.single.sofistik");
     expect(scopeFor("'Literal1'", 1)).toContain("string.single.sofistik");
     expect(scopeFor("P+", 1)).toContain("entity.name.function.sofistik");
@@ -220,7 +230,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("highlights record terminators but not semicolons inside strings or comments", async () => {
     await setUp("+PROG AQUA\nHEAD 'a;b'; HEAD next ! comment ; remains text\nEND\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     const source = editor.getText();
     const scopeAtIndex = (index) =>
       editor
@@ -240,7 +250,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("highlights continuation comments", async () => {
     await setUp("+PROG AQUA\nHEAD first $$ continued note\nEND\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(scopeFor("$$ continued note", 1)).toContain("comment.line.sofistik");
   });
 
@@ -249,8 +259,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       "#IF #copy_enabled\n+SYS wait copy 'inside.dat' 'inside-copy.dat'\n#ENDIF\n+SYS wait copy \"outside.dat\" \"outside-copy.dat\"\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    expect(languageMode.tree.rootNode.descendantsOfType("sys_statement").length).toBe(2);
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("sys_statement").length).toBe(2);
     expect(scopeFor("#IF", 1)).toContain("entity.name.section.sofistik");
     expect(scopeFor("#copy_enabled", 1)).toContain("variable.other.sofistik");
     expect(scopeFor("+SYS", 1)).toContain("support.class.sofistik");
@@ -262,8 +272,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("highlights an APPLY sigil and its interpolated string argument", async () => {
     await setUp('+APPLY "$(project)_csm.dat"\n');
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    expect(languageMode.tree.rootNode.descendantsOfType("apply_statement").length).toBe(1);
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("apply_statement").length).toBe(1);
     expect(scopeFor("+APPLY", 1)).toContain("support.class.sofistik");
     expect(scopeFor('"$(project)_csm.dat"', 0)).toContain("string.double.sofistik");
     expect(scopeFor("$(project)", 2)).toContain("variable.other.sofistik");
@@ -278,7 +288,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(scopeFor("$(asetxt1)", 2)).toContain("variable.other.sofistik");
     expect(scopeFor("$(asetxt2)", 2)).toContain("variable.other.sofistik");
     expect(scopeFor('"$(asetxt1)"', 0)).toContain("string.double.sofistik");
@@ -290,8 +300,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("highlights variables but not literals in a sequence generator", async () => {
     await setUp("+PROG CSM\nGRP (24001 24000+#idt 1) ICS1 11 PHIF 0\nEND\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    expect(languageMode.tree.rootNode.descendantsOfType("sequence_generator").length).toBe(1);
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("sequence_generator").length).toBe(1);
     expect(scopeFor("#idt", 1)).toContain("variable.other.sofistik");
     for (const literal of ["(24001", "24000+#idt", "1)"]) {
       const scope = scopeFor(literal, literal.startsWith("(") ? 1 : 0);
@@ -330,7 +340,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     expect(root.hasError).toBe(false);
     const defineNames = root.descendantsOfType("preprocessor_name");
     expect(defineNames.map((node) => node.text)).toEqual(["ella-dyn-t.1-1", "ella-linf-t.1"]);
@@ -353,7 +363,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("does not highlight unknown TEMPLATE records as commands", async () => {
     await setUp("+PROG TEMPLATE\nGRP2 1\nasdasdasdas 2\nTEST OPT1 1\nEND\n");
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     expect(root.hasError).toBe(false);
     expect(root.descendantsOfType("invalid_command").map((node) => node.text)).toEqual([
       "GRP2",
@@ -383,7 +393,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "#enddef\n",
     );
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     expect(root.hasError).toBe(false);
     expect(root.descendantsOfType("unscoped_record").length).toBe(4);
     const variables = root.descendantsOfType("dollar_variable");
@@ -407,7 +417,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("preserves a trailing comment after a flat definition value", async () => {
     await setUp("#DEFINE no = 119 ! only vertical live\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(scopeFor("no", 1)).toContain("string.other.sofistik");
     expect(scopeFor("119", 1)).not.toContain("constant.numeric.sofistik");
     expect(scopeFor("119", 1)).not.toContain("entity.name.function.sofistik");
@@ -417,9 +427,9 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("keeps preprocessor conditionals flat and their bodies in module scope", async () => {
     await setUp(FLAT_PREPROCESSOR_FIXTURE);
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     expect(
-      languageMode.tree.rootNode
+      rootNode()
         .descendantsOfType("preprocessor_keyword")
         .map((node) => node.text.toUpperCase()),
     ).toEqual(["#IF", "#ELSEIF", "#ELSE", "#ENDIF"]);
@@ -449,7 +459,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("parses representative files without changing scope around preprocessor definitions", async () => {
     await setUp(REGRESSION_FIXTURE);
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     expect(root.hasError).toBe(false);
     expect(root.descendantsOfType("program").length).toBe(3);
     expect(root.descendantsOfType("commented_program_header").length).toBe(2);
@@ -532,8 +542,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "END\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    const statement = languageMode.tree.rootNode.descendantsOfType("variable_statement")[1];
+    await expectNoSyntaxError();
+    const statement = rootNode().descendantsOfType("variable_statement")[1];
     const variables = [
       ...statement.descendantsOfType("hash_variable"),
       ...statement.descendantsOfType("dollar_variable"),
@@ -586,7 +596,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         "<\\TEXT>\nEND\n",
     );
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
+    await expectNoSyntaxError();
     for (const variable of ["#outfile", "$(folder)", "#title", "$(project)"]) {
       expect(scopeFor(variable, 1)).toContain("variable.other.sofistik");
     }
@@ -614,8 +624,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("keeps every command in an AQB definition after END in module scope", async () => {
     await setUp("+PROG AQB\nEND\n#DEFINE aqblcs\nLC 1\nLC 2\nLC 3\n#ENDDEF\n");
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    const commands = languageMode.tree.rootNode.descendantsOfType("command_name");
+    await expectNoSyntaxError();
+    const commands = rootNode().descendantsOfType("command_name");
     expect(commands.map((node) => node.text.toUpperCase())).toEqual(["LC", "LC", "LC"]);
     for (const command of commands) {
       expect(editor.scopeDescriptorForBufferPosition(command.startPosition).toString()).toContain(
@@ -627,7 +637,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("highlights named quoted and unterminated string variants", async () => {
     await setUp(MODERN_SYNTAX_FIXTURE);
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     const expected = [
       ["single_doubled_quoted_string", "''single doubled''", "string.single.sofistik"],
       ["double_doubled_quoted_string", '""double doubled""', "string.double.sofistik"],
@@ -658,7 +668,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("highlights CDB, references, numbers, and recursive hash names by node type", async () => {
     await setUp(MODERN_SYNTAX_FIXTURE);
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     const cdbStatements = root.descendantsOfType("cdb_statement");
     expect(cdbStatements.map((statement) => statement.childForFieldName("keyword").text)).toEqual([
       "@KEY",
@@ -725,7 +735,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("marks unknown TEMPLATE commands invalid while keeping tolerated syntax in named nodes", async () => {
     await setUp(MODERN_SYNTAX_FIXTURE);
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     expect(root.hasError).toBe(false);
     expect(root.toString()).not.toContain("(ERROR");
     expect(root.toString()).not.toContain("(MISSING");
@@ -770,7 +780,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("keeps highlighting and folds scoped when END is missing", async () => {
     await setUp("+PROG AQUA\nHEAD first\n+PROG ASE\nHEAD second\nEND\n");
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     const programs = root.descendantsOfType("program");
     expect(root.hasError).toBe(false);
     expect(root.toString()).not.toContain("(ERROR");
@@ -794,7 +804,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       "+PROG ASE\nHEAD example\nEND\nLOOP#i ASE_ITER ; STO#iter50(#i) #ASE_ITER(#i) ; ENDLOOP\nEND\nLC 5002\nEND\n",
     );
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     const program = root.descendantsOfType("program")[0];
     expect(root.hasError).toBe(false);
     expect(root.descendantsOfType("program").length).toBe(1);
@@ -813,7 +823,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       '+PROG SOFIMSHA\nTXBB Analysis\nMASS #A "$(B)" remains prose\nTXEN\nPAGE UNII 0\nEND\n',
     );
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     expect(root.hasError).toBe(false);
     expect(root.descendantsOfType("command_name").map((node) => node.text)).toEqual([
       "TXBB",
@@ -829,7 +839,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   it("parses, highlights, and folds PICT blocks in a program body and tail", async () => {
     await setUp(MODERN_SYNTAX_FIXTURE);
 
-    const root = languageMode.tree.rootNode;
+    const root = rootNode();
     const program = root.descendantsOfType("program")[0];
     const pictures = root.descendantsOfType("picture_block");
     expect(pictures.length).toBe(2);
@@ -857,8 +867,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
 
   it("exposes nested program and command symbols", async () => {
     await setUp("+PROG AQUA\nCONC 1 C 30\nEND\n");
-    const layer = languageMode.rootLanguageLayer;
-    const captures = layer.queries.tagsQuery.captures(layer.tree.rootNode);
+    const groups = await editor.getGrammarQueryCaptureGroups("tagsQuery");
+    const captures = groups.find(({ grammar }) => grammar === editor.getGrammar()).captures;
 
     expect(
       captures

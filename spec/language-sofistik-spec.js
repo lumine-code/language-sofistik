@@ -27,8 +27,9 @@ describe("language-sofistik", () => {
     const languageMode = editor.getBuffer().getLanguageMode();
     await languageMode.ready;
 
-    expect(languageMode.tree.rootNode.hasError).toBe(false);
-    expect(languageMode.tree.rootNode.descendantsOfType("program").length).toBe(6);
+    expect((await editor.getSyntaxDiagnostics()).hasError).toBe(false);
+    const root = editor.getSyntaxNodeAtBufferPosition([0, 0], (node) => node.parent == null);
+    expect(root.descendantsOfType("program").length).toBe(6);
   });
 
   it("uses a dollar sign for line comments", async () => {
