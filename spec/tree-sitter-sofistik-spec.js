@@ -50,7 +50,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
   };
 
   const expectNoSyntaxError = async (targetEditor = editor) => {
-    expect((await targetEditor.getSyntaxDiagnostics()).hasError).toBe(false);
+    await targetEditor.getBuffer().getLanguageMode().atTransactionEnd();
+    expect(rootNode(targetEditor).hasError).toBe(false);
   };
 
   const expectFoldableRows = (foldableRows, otherRows) => {

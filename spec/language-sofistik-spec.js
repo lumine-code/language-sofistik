@@ -27,8 +27,8 @@ describe("language-sofistik", () => {
     const languageMode = editor.getBuffer().getLanguageMode();
     await languageMode.ready;
 
-    expect((await editor.getSyntaxDiagnostics()).hasError).toBe(false);
     const root = editor.getSyntaxNodeAtBufferPosition([0, 0], (node) => node.parent == null);
+    expect(root.hasError).toBe(false);
     expect(root.descendantsOfType("program").length).toBe(6);
   });
 
