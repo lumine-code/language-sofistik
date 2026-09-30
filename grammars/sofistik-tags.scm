@@ -1,5 +1,6 @@
+; Resolve the header field before traversing a potentially wide program body.
 (program
-  (program_header
+  header: (program_header
     module: (module_name) @name)) @definition.module
 
 (command

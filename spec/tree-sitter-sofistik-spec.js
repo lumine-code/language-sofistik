@@ -884,6 +884,69 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     ).toEqual(["AQUA", "CONC"]);
   });
 
+  it("preserves ordered symbol captures and definition ranges across syntax fixtures", async () => {
+    for (const text of [REGRESSION_FIXTURE, FLAT_PREPROCESSOR_FIXTURE, MODERN_SYNTAX_FIXTURE]) {
+      await setUp(text);
+      const root = rootNode();
+      const expected = [];
+      for (const program of root.descendantsOfType("program")) {
+        const module = program.childForFieldName("header")?.childForFieldName("module");
+        if (module?.type !== "module_name") continue;
+        expected.push({ name: "definition.module", node: program }, { name: "name", node: module });
+      }
+      for (const command of root.descendantsOfType("command")) {
+        const name = command.childForFieldName("name");
+        if (name?.type !== "command_name") continue;
+        expected.push({ name: "definition.method", node: command }, { name: "name", node: name });
+      }
+      expected.sort(
+        (first, second) =>
+          first.node.startIndex - second.node.startIndex ||
+          second.node.endIndex - first.node.endIndex,
+      );
+      const groups = await editor.getGrammarQueryCaptureGroups("tagsQuery");
+      const captures = groups.find(({ grammar }) => grammar === editor.getGrammar()).captures;
+      const describe = ({ name, node }) => [name, node.type, node.startIndex, node.endIndex];
+      expect(captures.map(describe)).toEqual(expected.map(describe));
+    }
+  });
+
+  it("retains all command symbols and the complete program range after editing a large tail", async () => {
+    const commandCount = 2048;
+    const text = "+PROG AQUA\n" + "CONC NO 1\n".repeat(commandCount) + "END\n";
+    await setUp(text);
+    const buffer = editor.getBuffer();
+    buffer.append("x");
+    await expectNoSyntaxError();
+
+    const groups = await editor.getGrammarQueryCaptureGroups("tagsQuery");
+    const captures = groups.find(({ grammar }) => grammar === editor.getGrammar()).captures;
+    const programs = captures.filter((capture) => capture.name === "definition.module");
+    const commands = captures.filter((capture) => capture.name === "definition.method");
+    expect(programs.length).toBe(1);
+    expect(programs[0].node.text).toBe(text + "x");
+    expect(commands.length).toBe(commandCount);
+    expect(commands[0].node.startPosition.row).toBe(1);
+    expect(commands.at(-1).node.startPosition.row).toBe(commandCount);
+    expect(captures.filter((capture) => capture.name === "name").length).toBe(commandCount + 1);
+
+    buffer.delete([
+      [commandCount + 2, 0],
+      [commandCount + 2, 1],
+    ]);
+    await expectNoSyntaxError();
+    const restored = await editor.getGrammarQueryCaptureGroups("tagsQuery");
+    const restoredCaptures = restored.find(
+      ({ grammar }) => grammar === editor.getGrammar(),
+    ).captures;
+    expect(restoredCaptures.find((capture) => capture.name === "definition.module").node.text).toBe(
+      text,
+    );
+    expect(restoredCaptures.filter((capture) => capture.name === "definition.method").length).toBe(
+      commandCount,
+    );
+  });
+
   it("folds complete real and commented program scopes plus flat definitions", async () => {
     await setUp(
       "+PROG AQB\n" +
