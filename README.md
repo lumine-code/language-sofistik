@@ -19,10 +19,6 @@ Provides a Tree-sitter input grammar for SOFiSTiK CADINP files. The central `lan
 
 To install `language-sofistik` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/language-sofistik`.
 
-## Services
-
-- `todo.injection`: consumed to highlight TODO-style annotations in comments.
-
 ## Contributing
 
 Got ideas to make this package better, found a bug, or want to help add new features? Just drop your thoughts on GitHub. Any feedback is welcome!
