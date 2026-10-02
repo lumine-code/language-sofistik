@@ -1,6 +1,6 @@
 .syntax--sofistik {
   &.syntax--punctuation.syntax--terminator.syntax--record {
-    color: var(--syntax-color-keyword);
+    color: var(--syntax-text-color);
   }
 
   &.syntax--meta {
