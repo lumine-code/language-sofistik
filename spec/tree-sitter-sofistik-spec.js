@@ -147,6 +147,55 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     );
   });
 
+  it("keeps incomplete and unknown command words plain while typing", async () => {
+    await setUp("\n+prog sofiload\n");
+    const buffer = editor.getBuffer();
+
+    for (const word of ["h", "he", "hea", "head", "hea", "unknown"]) {
+      buffer.setTextInRange(
+        [
+          [2, 0],
+          [2, Infinity],
+        ],
+        word,
+      );
+      await languageMode.atTransactionEnd();
+
+      for (let column = 0; column < word.length; column++) {
+        const scope = editor.scopeDescriptorForBufferPosition([2, column]).toString();
+        expect(scope).not.toContain("string.");
+        expect(scope.includes("keyword.control.sofistik")).toBe(word === "head");
+      }
+    }
+
+    for (const suffix of ["\n", "\nend\n"]) {
+      buffer.setText(`+prog sofiload\nhea${suffix}`);
+      await languageMode.atTransactionEnd();
+      expect(scopeFor("hea", 1)).not.toContain("string.");
+      expect(scopeFor("hea", 1)).not.toContain("keyword.control.sofistik");
+    }
+  });
+
+  it("highlights names in DEFINE and UNDEF directives", async () => {
+    await setUp(
+      "#DEFINE block_name\n#ENDDEF\n#DEFINE value_name = 1\n" +
+        "#UNDEF block_name value_name\n#DEFINE partial_name",
+    );
+
+    await expectNoSyntaxError();
+    const names = rootNode().descendantsOfType("preprocessor_name");
+    expect(names.map((node) => node.text)).toEqual([
+      "block_name",
+      "value_name",
+      "block_name",
+      "value_name",
+      "partial_name",
+    ]);
+    for (const name of names) {
+      expect(scopeForNode(name, 1)).toContain("string.other.sofistik");
+    }
+  });
+
   it("treats program options as comments and enum-like values as plain text", async () => {
     await setUp("+PROG TENDON URS:9\nAXES VAL3 11 KIND QUAD\nAXES VAL3 12 quad\nEND\n");
 

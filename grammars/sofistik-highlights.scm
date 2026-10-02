@@ -18,7 +18,13 @@
 (variable_keyword) @keyword.control.sofistik
 (cdb_keyword) @keyword.control.sofistik
 (preprocessor_keyword) @entity.name.section.sofistik
-(preprocessor_name) @string.other.sofistik
+
+; Recovery nodes can contain arbitrary words parsed as preprocessor names.
+; Only names belonging to actual directives should receive a string scope.
+(preprocessor_define_header
+  name: (preprocessor_name) @string.other.sofistik)
+(preprocessor_define_statement
+  name: (preprocessor_name) @string.other.sofistik)
 
 ; VALUES
 ; ======
