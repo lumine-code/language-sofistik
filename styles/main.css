@@ -7,7 +7,7 @@
     font-weight: bold;
 
     &.syntax--version {
-      color: var(--button-background-color-selected);
+      color: var(--syntax-color-constant);
     }
   }
 }
