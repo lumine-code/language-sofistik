@@ -347,6 +347,119 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor('"#plain"', 1)).not.toContain("variable.other.sofistik");
   });
 
+  it("keeps closed quotes and following record arguments separate from incomplete substitutions", async () => {
+    await setUp("");
+    for (const quote of ["'", '"']) {
+      const value = `${quote}cost $(missing${quote}`;
+      editor.setText(`+PROG AQUA\nHEAD ${value} outside 7 (1); HEAD next\nEND\n`);
+      await expectNoSyntaxError();
+      const root = rootNode();
+      expect(root.descendantsOfType("dollar_variable")).toEqual([]);
+      expect(root.descendantsOfType("unterminated_string")).toEqual([]);
+      expect(root.descendantsOfType("command_name").map((node) => node.text)).toEqual([
+        "HEAD",
+        "HEAD",
+      ]);
+      const record = root.descendantsOfType("command")[0].childForFieldName("record");
+      expect(record.namedChildren.map((node) => node.type)).toEqual([
+        "string",
+        "bare_value",
+        "number",
+        "parenthesized_expression",
+      ]);
+      const string = record.namedChild(0);
+      expect(string.text).toBe(value);
+      expect(string.startPosition.column).toBe(5);
+      expect(string.endPosition.column).toBe(5 + value.length);
+      const scope = quote === "'" ? "string.single.sofistik" : "string.double.sofistik";
+      expect(scopeFor(value, value.length - 1)).toContain(scope);
+      expect(scopeFor("$(missing", 2)).toContain(scope);
+      expect(scopeFor("$(missing", 2)).not.toContain("variable.other.sofistik");
+      expect(scopeFor("outside", 1)).not.toContain("string.");
+      expect(scopeFor("outside", 1)).not.toContain("variable.other.sofistik");
+      expect(scopeFor("7")).toContain("constant.numeric.sofistik");
+      expect(scopeFor(";")).toContain("punctuation.terminator.record.sofistik");
+      expect(scopeFor(";")).not.toContain("string.");
+    }
+  });
+
+  it("keeps doubled quote escapes and complete substitutions scoped within their string", async () => {
+    await setUp("");
+    for (const quote of ["'", '"']) {
+      const substitution = `$(name${quote}${quote}tail)`;
+      const value = `${quote}cost ${quote}${quote}quoted${quote}${quote} ${substitution}${quote}`;
+      editor.setText(`+PROG AQUA\nHEAD ${value} outside\nEND\n`);
+      await expectNoSyntaxError();
+      expect(
+        rootNode()
+          .descendantsOfType("string")
+          .map((node) => node.text),
+      ).toEqual([value]);
+      expect(
+        rootNode()
+          .descendantsOfType("dollar_variable")
+          .map((node) => node.text),
+      ).toEqual([substitution]);
+      const scope = quote === "'" ? "string.single.sofistik" : "string.double.sofistik";
+      expect(scopeFor(value, value.length - 1)).toContain(scope);
+      expect(scopeFor("quoted", 1)).toContain(scope);
+      expect(scopeFor(substitution, 2)).toContain("variable.other.sofistik");
+      expect(scopeFor("outside", 1)).not.toContain("string.");
+    }
+  });
+
+  it("updates quote recovery and following argument scopes after incremental delimiter edits", async () => {
+    await setUp("");
+    for (const quote of ["'", '"']) {
+      editor.setText(`+PROG AQUA\nHEAD ${quote}cost $(NAME)${quote} outside 7 (1)\nEND\n`);
+      await expectNoSyntaxError();
+      const buffer = editor.getBuffer();
+      const replace = async (index, length, text) => {
+        buffer.setTextInRange(
+          [
+            buffer.positionForCharacterIndex(index),
+            buffer.positionForCharacterIndex(index + length),
+          ],
+          text,
+        );
+        await expectNoSyntaxError();
+      };
+      await replace(editor.getText().indexOf(")"), 1, "");
+      expect(rootNode().descendantsOfType("dollar_variable")).toEqual([]);
+      expect(rootNode().descendantsOfType("unterminated_string")).toEqual([]);
+      expect(scopeFor("$(NAME", 2)).not.toContain("variable.other.sofistik");
+      expect(scopeFor("outside", 1)).not.toContain("string.");
+
+      let end = editor.getText().indexOf(`${quote} outside`);
+      await replace(end, 1, "");
+      expect(rootNode().descendantsOfType("unterminated_string").length).toBe(1);
+      expect(scopeFor("outside", 1)).toContain(
+        quote === "'" ? "string.single.sofistik" : "string.double.sofistik",
+      );
+      await replace(end, 0, quote);
+      expect(rootNode().descendantsOfType("unterminated_string")).toEqual([]);
+      expect(scopeFor("outside", 1)).not.toContain("string.");
+
+      end = editor.getText().indexOf(`${quote} outside`);
+      await replace(end, 0, `${quote}${quote}`);
+      end = editor.getText().indexOf(`${quote} outside`);
+      await replace(end, 0, ")");
+      expect(
+        rootNode()
+          .descendantsOfType("dollar_variable")
+          .map((node) => node.text),
+      ).toEqual([`$(NAME${quote}${quote})`]);
+      expect(scopeFor("$(NAME", 2)).toContain("variable.other.sofistik");
+      expect(scopeFor("outside", 1)).not.toContain("string.");
+      expect(scopeFor("7")).toContain("constant.numeric.sofistik");
+      expect(
+        rootNode()
+          .descendantsOfType("parenthesized_expression")
+          .map((node) => node.text),
+      ).toEqual(["(1)"]);
+    }
+  });
+
   it("highlights variables but not literals in a sequence generator", async () => {
     await setUp("+PROG CSM\nGRP (24001 24000+#idt 1) ICS1 11 PHIF 0\nEND\n");
 
