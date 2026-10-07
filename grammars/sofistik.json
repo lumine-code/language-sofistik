@@ -9,7 +9,7 @@
     "start": "$ "
   },
   "treeSitter": {
-    "parserSource": "github:lumine-code/tree-sitter-sofistik#7d060c4dee3275124ff949372ff8c45e54d1897e",
+    "parserSource": "github:lumine-code/tree-sitter-sofistik#cc7e0d998890f1d56a88119c87554129941a74aa",
     "wasmBuildTool": "tree-sitter-cli#v0.27.0",
     "grammar": "sofistik.wasm",
     "highlightsQuery": "sofistik-highlights.scm",
