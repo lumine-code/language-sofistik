@@ -6,7 +6,7 @@ describe("language-sofistik", () => {
   });
 
   it("selects Tree-sitter for input files", () => {
-    for (const extension of ["dat", "gra", "grb", "results"]) {
+    for (const extension of ["dat", "gra", "grb", "results", "include"]) {
       const grammar = lumine.grammars.selectGrammar(`model.${extension}`, "");
       expect(grammar.scopeName).toBe("source.sofistik");
       expect(grammar.type).toBe("tree-sitter");

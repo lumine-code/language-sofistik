@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const PACKAGE_NAME = "language-sofistik";
-const EXPECTED_GRAMMARS = 1;
+const EXPECTED_GRAMMARS = 6;
 const HIGHLIGHTS_QUERY = fs.readFileSync(
   path.join(__dirname, "..", "grammars", "sofistik-highlights.scm"),
   "utf8",

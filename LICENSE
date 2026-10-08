@@ -22,7 +22,8 @@ SOFTWARE.
 
 ----- BEGIN THIRD-PARTY LICENSE: parser:lumine-code_tree-sitter-sofistik -----
 Source: https://github.com/lumine-code/tree-sitter-sofistik
-Revision: 30e4f918dbc5285611bca2a6790b80e8c1b723cc
+Commit: a0a3947d6835eed544bd3bd644c34c041fba4be9
+Ref: a0a3947d6835eed544bd3bd644c34c041fba4be9
 
 Original file: LICENSE
 
@@ -47,4 +48,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
 ----- END THIRD-PARTY LICENSE: parser:lumine-code_tree-sitter-sofistik -----

@@ -1,0 +1,19 @@
+{
+  "name": "SOFiSTiK TENDON Include",
+  "scopeName": "source.sofistik.include.tendon",
+  "type": "tree-sitter",
+  "parser": "tree-sitter-sofistik-tendon",
+  "fileTypes": ["spt.include", "tnd.include"],
+  "comments": {
+    "start": "$ "
+  },
+  "treeSitter": {
+    "parserSource": "github:lumine-code/tree-sitter-sofistik/include/tendon#a0a3947d6835eed544bd3bd644c34c041fba4be9",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.0",
+    "grammar": "sofistik-tendon.wasm",
+    "highlightsQuery": "sofistik-highlights.scm",
+    "foldsQuery": "sofistik-folds.scm",
+    "tagsQuery": "sofistik-tags.scm",
+    "injectionsQuery": "sofistik-injections.scm"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "SOFiSTiK SOFiMSHC Include",
+  "scopeName": "source.sofistik.include.sofimshc",
+  "type": "tree-sitter",
+  "parser": "tree-sitter-sofistik-sofimshc",
+  "fileTypes": ["msh.include"],
+  "comments": {
+    "start": "$ "
+  },
+  "treeSitter": {
+    "parserSource": "github:lumine-code/tree-sitter-sofistik/include/sofimshc#a0a3947d6835eed544bd3bd644c34c041fba4be9",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.0",
+    "grammar": "sofistik-sofimshc.wasm",
+    "highlightsQuery": "sofistik-highlights.scm",
+    "foldsQuery": "sofistik-folds.scm",
+    "tagsQuery": "sofistik-tags.scm",
+    "injectionsQuery": "sofistik-injections.scm"
+  }
+}

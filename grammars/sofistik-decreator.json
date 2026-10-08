@@ -1,0 +1,19 @@
+{
+  "name": "SOFiSTiK DECREATOR Include",
+  "scopeName": "source.sofistik.include.decreator",
+  "type": "tree-sitter",
+  "parser": "tree-sitter-sofistik-decreator",
+  "fileTypes": ["dsn.include"],
+  "comments": {
+    "start": "$ "
+  },
+  "treeSitter": {
+    "parserSource": "github:lumine-code/tree-sitter-sofistik/include/decreator#a0a3947d6835eed544bd3bd644c34c041fba4be9",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.0",
+    "grammar": "sofistik-decreator.wasm",
+    "highlightsQuery": "sofistik-highlights.scm",
+    "foldsQuery": "sofistik-folds.scm",
+    "tagsQuery": "sofistik-tags.scm",
+    "injectionsQuery": "sofistik-injections.scm"
+  }
+}

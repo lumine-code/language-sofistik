@@ -1,0 +1,19 @@
+{
+  "name": "SOFiSTiK AQUA Include",
+  "scopeName": "source.sofistik.include.aqua",
+  "type": "tree-sitter",
+  "parser": "tree-sitter-sofistik-aqua",
+  "fileTypes": ["aqa.include"],
+  "comments": {
+    "start": "$ "
+  },
+  "treeSitter": {
+    "parserSource": "github:lumine-code/tree-sitter-sofistik/include/aqua#a0a3947d6835eed544bd3bd644c34c041fba4be9",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.0",
+    "grammar": "sofistik-aqua.wasm",
+    "highlightsQuery": "sofistik-highlights.scm",
+    "foldsQuery": "sofistik-folds.scm",
+    "tagsQuery": "sofistik-tags.scm",
+    "injectionsQuery": "sofistik-injections.scm"
+  }
+}
