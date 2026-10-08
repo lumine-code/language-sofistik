@@ -1,5 +1,5 @@
 {
-  "name": "SOFiSTiK SOFiLOAD",
+  "name": "SOFiSTiK (SOFiLOAD)",
   "scopeName": "source.sofistik.include.sofiload",
   "type": "tree-sitter",
   "parser": "tree-sitter-sofistik-sofiload",

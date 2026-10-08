@@ -1,5 +1,5 @@
 {
-  "name": "SOFiSTiK DECREATOR",
+  "name": "SOFiSTiK (DECREATOR)",
   "scopeName": "source.sofistik.include.decreator",
   "type": "tree-sitter",
   "parser": "tree-sitter-sofistik-decreator",

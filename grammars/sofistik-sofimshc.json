@@ -1,5 +1,5 @@
 {
-  "name": "SOFiSTiK SOFiMSHC",
+  "name": "SOFiSTiK (SOFiMSHC)",
   "scopeName": "source.sofistik.include.sofimshc",
   "type": "tree-sitter",
   "parser": "tree-sitter-sofistik-sofimshc",

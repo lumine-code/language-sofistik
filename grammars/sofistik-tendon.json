@@ -1,5 +1,5 @@
 {
-  "name": "SOFiSTiK TENDON",
+  "name": "SOFiSTiK (TENDON)",
   "scopeName": "source.sofistik.include.tendon",
   "type": "tree-sitter",
   "parser": "tree-sitter-sofistik-tendon",
