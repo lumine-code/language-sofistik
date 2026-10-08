@@ -1,5 +1,5 @@
 {
-  "name": "SOFiSTiK AQUA Include",
+  "name": "SOFiSTiK AQUA",
   "scopeName": "source.sofistik.include.aqua",
   "type": "tree-sitter",
   "parser": "tree-sitter-sofistik-aqua",
