@@ -8,7 +8,7 @@
     "start": "$ "
   },
   "treeSitter": {
-    "parserSource": "github:lumine-code/tree-sitter-sofistik/include/tendon#a0a3947d6835eed544bd3bd644c34c041fba4be9",
+    "parserSource": "github:lumine-code/tree-sitter-sofistik/include/tendon#596d712cebd86603952a7b56cfb68a53a0d55abe",
     "wasmBuildTool": "tree-sitter-cli#v0.27.0",
     "grammar": "sofistik-tendon.wasm",
     "highlightsQuery": "sofistik-highlights.scm",

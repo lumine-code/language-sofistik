@@ -4,6 +4,8 @@ Syntax highlighting for SOFiSTiK structural analysis software.
 
 Provides a Tree-sitter input grammar for SOFiSTiK CADINP files. The central `language-log` package supplies the output grammar.
 
+Variable statements and `#INCLUDE` or `#UNDEF` directives retain their highlighting after table definitions and between table rows, while later rows keep the active table header.
+
 > **NOTE**: This package is not an official SOFiSTiK product and is not affiliated with or endorsed by SOFiSTiK AG.
 
 ## Features

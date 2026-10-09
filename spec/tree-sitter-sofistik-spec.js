@@ -87,6 +87,170 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     ]);
   });
 
+  it("keeps STO definitions highlighted after an ACT table", async () => {
+    await setUp(
+      "+prog sofiload\n" +
+        "head acts\n" +
+        "act type part sup gamu gamf gama psi0 psi1 psi2 titl\n" +
+        "    lp_u q_1 cond 1.35 0.00 1.00 0.40 0.40 0.00 'live:u-z'\n" +
+        "    lp_x q_1 unsi 1.35 0.00 1.00 0.40 0.40 0.00 'live:u-x'\n" +
+        "    lp_Q q_2 excl 1.35 0.00 1.00 0.00 0.00 0.00 'live:Q-z'\n" +
+        "    lp_p q_4 excl 1.35 0.00 1.00 0.00 0.00 0.00 'live:ped'\n" +
+        "sto#D_f 0.21 ! grubość płyty betonowej\n" +
+        "sto#B_1 -1.175 ! lewy krawężnik względem osi\n" +
+        "sto#B_2 +1.175 ! prawy krawężnik względem osi\n" +
+        "sto#L_1 0.000 ! początek trasy przejazdu\n" +
+        "sto#L_2 25.100 ! koniec trasy przejazdu\n" +
+        "end\n",
+    );
+
+    await expectNoSyntaxError();
+    const root = rootNode();
+    expect(root.descendantsOfType("table_definition").length).toBe(1);
+    expect(root.descendantsOfType("table_row").length).toBe(4);
+    const keywords = root.descendantsOfType("variable_keyword");
+    expect(keywords.map((node) => node.text)).toEqual(["sto", "sto", "sto", "sto", "sto"]);
+    for (const keyword of keywords) {
+      expect(scopeForNode(keyword, 1)).toContain("keyword.control.sofistik");
+    }
+    for (const variable of ["#D_f", "#B_1", "#B_2", "#L_1", "#L_2"]) {
+      expect(scopeFor(variable, 1)).toContain("variable.other.sofistik");
+    }
+    expect(scopeFor("type", 1)).toContain("entity.name.function.sofistik");
+    expect(scopeFor("1.35", 1)).toContain("constant.numeric.sofistik");
+    expect(scopeFor("'live:u-z'", 1)).toContain("string.single.sofistik");
+  });
+
+  it("keeps variable definitions separate from table rows without losing their header", async () => {
+    await setUp(
+      "+PROG SOFILOAD\n" +
+        "ACT TYPE PART SUP TITL\n" +
+        "    lp_u q_1 cond STO\n" +
+        "    STO q_1 cond plain\n" +
+        "    LeT#first 1; sTo #second 2\n" +
+        "    RCL#saved; DEL #saved; PRT#first; DBG #first\n" +
+        "    lp_x q_1 unsi LET\n" +
+        "    let q_1 unsi plain\n" +
+        "LC 1 TYPE NONE\n" +
+        "END\n",
+    );
+
+    await expectNoSyntaxError();
+    const root = rootNode();
+    const command = root.descendantsOfType("command")[0];
+    const keywords = command.descendantsOfType("variable_keyword");
+    expect(keywords.map((node) => node.text.toUpperCase())).toEqual([
+      "LET",
+      "STO",
+      "RCL",
+      "DEL",
+      "PRT",
+      "DBG",
+    ]);
+    expect(command.descendantsOfType("table_definition").length).toBe(1);
+    const rows = command.descendantsOfType("table_row");
+    expect(rows.map((node) => node.text.trim())).toEqual([
+      "lp_u q_1 cond STO",
+      "STO q_1 cond plain",
+      "lp_x q_1 unsi LET",
+      "let q_1 unsi plain",
+    ]);
+    for (const keyword of keywords) {
+      expect(scopeForNode(keyword, 1)).toContain("keyword.control.sofistik");
+    }
+    for (const row of rows) {
+      const value = row.namedChildren.at(-1);
+      expect(scopeForNode(value, 1)).not.toContain("keyword.control.sofistik");
+      expect(scopeForNode(value, 1)).not.toContain("entity.name.function.sofistik");
+    }
+    for (const value of ["STO q_1", "let q_1"]) {
+      expect(scopeFor(value, 1)).not.toContain("keyword.control.sofistik");
+    }
+    expect(scopeFor("LC 1", 1)).toContain("keyword.control.sofistik");
+  });
+
+  it("recognizes commands, control, preprocessing, and CDB statements after tables", async () => {
+    await setUp("");
+    const boundaries = [
+      ["    LOOP#i 2\n    ENDLOOP\n", "loop_block", "LOOP#i", "keyword.control.sofistik"],
+      ["    IF 1\n    ENDIF\n", "if_block", "IF 1", "keyword.control.sofistik"],
+      ["    #IF 1\n    #ENDIF\n", "preprocessor_if_header", "#IF", "entity.name.section.sofistik"],
+      [
+        "    #DEFINE value = 1\n",
+        "preprocessor_define_statement",
+        "#DEFINE",
+        "entity.name.section.sofistik",
+      ],
+      ["    @KEY SECRET\n", "cdb_statement", "@KEY", "keyword.control.sofistik"],
+      ["    LC 7 TYPE NONE\n", "command", "LC 7", "keyword.control.sofistik"],
+    ];
+    for (const [source, type, needle, scope] of boundaries) {
+      editor.setText(
+        "+PROG SOFILOAD\nACT TYPE PART SUP\n    lp_u q_1 cond\n" + source + "LC 1 TYPE NONE\nEND\n",
+      );
+      await expectNoSyntaxError();
+      const root = rootNode();
+      expect(root.descendantsOfType("table_row").length).toBe(1);
+      expect(root.descendantsOfType(type).length).toBeGreaterThan(0);
+      expect(scopeFor(needle, 1)).toContain(scope);
+      expect(scopeFor("LC 1", 1)).toContain("keyword.control.sofistik");
+    }
+  });
+
+  it("highlights INCLUDE and UNDEF directives between and after table rows", async () => {
+    await setUp(
+      "+PROG SOFILOAD\nACT TYPE PART SUP\n" +
+        "    lp_u q_1 cond\n    #include rows.inc\n" +
+        "    lp_x q_1 unsi\n    #undef macro\n" +
+        "    STO#remaining 1\nEND\n",
+    );
+
+    await expectNoSyntaxError();
+    const root = rootNode();
+    const command = root.descendantsOfType("command")[0];
+    expect(command.descendantsOfType("table_definition").length).toBe(1);
+    expect(command.descendantsOfType("table_row").map((node) => node.text.trim())).toEqual([
+      "lp_u q_1 cond",
+      "lp_x q_1 unsi",
+    ]);
+    expect(
+      command
+        .descendantsOfType("preprocessor_directive")
+        .map((node) => node.childForFieldName("keyword").text.toUpperCase()),
+    ).toEqual(["#INCLUDE", "#UNDEF"]);
+    for (const directive of ["#include", "#undef"]) {
+      expect(scopeFor(directive, 1)).toContain("entity.name.section.sofistik");
+    }
+    for (const argument of ["rows.inc", "macro"]) {
+      expect(scopeFor(argument, 1)).toContain("string.other.sofistik");
+    }
+    expect(scopeFor("STO#remaining", 1)).toContain("keyword.control.sofistik");
+  });
+
+  it("preserves variable highlighting when an ACT header becomes and stops being tabular", async () => {
+    await setUp(
+      "+PROG SOFILOAD\nACT TYPE 'G'\n    lp_u q_1 cond\n" + "STO#saved 1\n    lp_x q_1 unsi\nEND\n",
+    );
+    const buffer = editor.getBuffer();
+    for (const header of ["ACT TYPE PART SUP", "ACT TYPE 'G'", "ACT TYPE PART SUP"]) {
+      buffer.setTextInRange(
+        [
+          [1, 0],
+          [1, Infinity],
+        ],
+        header,
+      );
+      await expectNoSyntaxError();
+      const root = rootNode();
+      const isTable = header === "ACT TYPE PART SUP";
+      expect(root.descendantsOfType("table_definition").length).toBe(isTable ? 1 : 0);
+      expect(root.descendantsOfType("table_row").length).toBe(isTable ? 2 : 0);
+      expect(root.descendantsOfType("variable_keyword").map((node) => node.text)).toEqual(["STO"]);
+      expect(scopeFor("STO#saved", 1)).toContain("keyword.control.sofistik");
+      expect(scopeFor("#saved", 1)).toContain("variable.other.sofistik");
+    }
+  });
+
   it("applies SOFiSTiK scopes without decorating parser recovery nodes", async () => {
     await setUp("@ SOFiSTiK 2026\n+PROG AQUA\nCONC NO 1\nEND\n+PROG UNKNOWN\nEND\n");
 

@@ -124,6 +124,23 @@ describe("SOFiPLUS include grammars", () => {
     expect(scopesAt(editor, "30")).toContain("constant.numeric.sofistik");
   });
 
+  it("preserves variable and directive highlighting within a SOFiLOAD include table", async () => {
+    const editor = await setUp(
+      "lfd.include",
+      "ACT TYPE PART SUP\n    lp_u q_1 cond\n" +
+        "STO#saved 1\n#INCLUDE rows.inc\n    lp_x q_1 unsi\n",
+    );
+    const root = rootNode(editor);
+    expect(root.hasError).toBe(false);
+    expect(root.descendantsOfType("program").length).toBe(0);
+    expect(root.descendantsOfType("table_row").length).toBe(2);
+    expect(root.descendantsOfType("variable_keyword").map((node) => node.text)).toEqual(["STO"]);
+    expect(scopesAt(editor, "STO#saved", 1)).toContain("keyword.control.sofistik");
+    expect(scopesAt(editor, "#saved", 1)).toContain("variable.other.sofistik");
+    expect(scopesAt(editor, "#INCLUDE", 1)).toContain("entity.name.section.sofistik");
+    expect(scopesAt(editor, "rows.inc", 1)).toContain("string.other.sofistik");
+  });
+
   it("uses the ordinary grammar for other include names and extensions", async () => {
     for (const filename of ["other.include", "aqax.include", "aqa.dat"]) {
       const grammar = lumine.grammars.selectGrammar(filename, "");
