@@ -22,8 +22,8 @@ SOFTWARE.
 
 ----- BEGIN THIRD-PARTY LICENSE: parser:lumine-code_tree-sitter-sofistik -----
 Source: https://github.com/lumine-code/tree-sitter-sofistik
-Commit: 596d712cebd86603952a7b56cfb68a53a0d55abe
-Ref: 596d712cebd86603952a7b56cfb68a53a0d55abe
+Commit: cef67e31d3f38c36a6769c0945a3b3ed168e5fe3
+Ref: cef67e31d3f38c36a6769c0945a3b3ed168e5fe3
 
 Original file: LICENSE
 

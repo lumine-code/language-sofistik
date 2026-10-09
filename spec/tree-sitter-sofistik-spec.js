@@ -54,6 +54,17 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(rootNode(targetEditor).hasError).toBe(false);
   };
 
+  const expectOrphanRowError = (row) => {
+    const root = rootNode();
+    const errors = root.descendantsOfType("ERROR");
+    expect(root.hasError).toBe(true);
+    expect(errors.length).toBeGreaterThan(0);
+    for (const error of errors) {
+      expect(error.startPosition.row).toBe(row);
+      expect(error.endPosition.row).toBe(row);
+    }
+  };
+
   const expectFoldableRows = (foldableRows, otherRows) => {
     for (const row of foldableRows) expect(editor.isFoldableAtBufferRow(row)).toBe(true);
     for (const row of otherRows) expect(editor.isFoldableAtBufferRow(row)).toBe(false);
@@ -108,6 +119,13 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     const root = rootNode();
     expect(root.descendantsOfType("table_definition").length).toBe(1);
     expect(root.descendantsOfType("table_row").length).toBe(4);
+    const act = root
+      .descendantsOfType("command")
+      .find((node) => node.childForFieldName("name").text === "act");
+    const statements = root.descendantsOfType("variable_statement");
+    expect(act.descendantsOfType("variable_statement").length).toBe(0);
+    expect(act.endIndex).toBeLessThanOrEqual(statements[0].startIndex);
+    for (const statement of statements) expect(statement.parent.id).toBe(act.parent.id);
     const keywords = root.descendantsOfType("variable_keyword");
     expect(keywords.map((node) => node.text)).toEqual(["sto", "sto", "sto", "sto", "sto"]);
     for (const keyword of keywords) {
@@ -121,52 +139,46 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("'live:u-z'", 1)).toContain("string.single.sofistik");
   });
 
-  it("keeps variable definitions separate from table rows without losing their header", async () => {
-    await setUp(
-      "+PROG SOFILOAD\n" +
-        "ACT TYPE PART SUP TITL\n" +
-        "    lp_u q_1 cond STO\n" +
-        "    STO q_1 cond plain\n" +
-        "    LeT#first 1; sTo #second 2\n" +
-        "    RCL#saved; DEL #saved; PRT#first; DBG #first\n" +
-        "    lp_x q_1 unsi LET\n" +
-        "    let q_1 unsi plain\n" +
-        "LC 1 TYPE NONE\n" +
-        "END\n",
-    );
-
-    await expectNoSyntaxError();
-    const root = rootNode();
-    const command = root.descendantsOfType("command")[0];
-    const keywords = command.descendantsOfType("variable_keyword");
-    expect(keywords.map((node) => node.text.toUpperCase())).toEqual([
-      "LET",
-      "STO",
-      "RCL",
-      "DEL",
-      "PRT",
-      "DBG",
-    ]);
-    expect(command.descendantsOfType("table_definition").length).toBe(1);
-    const rows = command.descendantsOfType("table_row");
-    expect(rows.map((node) => node.text.trim())).toEqual([
-      "lp_u q_1 cond STO",
-      "STO q_1 cond plain",
-      "lp_x q_1 unsi LET",
-      "let q_1 unsi plain",
-    ]);
-    for (const keyword of keywords) {
+  it("ends a table at each variable command and requires an explicit new table header", async () => {
+    await setUp("");
+    for (const source of [
+      "LeT#saved 1",
+      "sTo #saved 2",
+      "RCL#saved",
+      "DEL #saved",
+      "PRT#saved",
+      "DBG #saved",
+    ]) {
+      editor.setText(
+        "+PROG SOFILOAD\nACT TYPE PART SUP TITL\n" +
+          "    lp_u q_1 cond STO\n    STO q_1 cond plain\n    let q_1 unsi plain\n" +
+          `    ${source};\n` +
+          "ACT TYPE PART SUP\n    lp_Q q_2 excl\nLC 1 TYPE NONE\nEND\n",
+      );
+      await expectNoSyntaxError();
+      const root = rootNode();
+      const commands = root.descendantsOfType("command");
+      const command = commands[0];
+      const statement = root.descendantsOfType("variable_statement")[0];
+      const keyword = statement.childForFieldName("keyword");
+      expect(keyword.text.toUpperCase()).toBe(source.slice(0, 3).toUpperCase());
       expect(scopeForNode(keyword, 1)).toContain("keyword.control.sofistik");
+      expect(statement.parent.id).toBe(command.parent.id);
+      expect(command.endIndex).toBeLessThanOrEqual(statement.startIndex);
+      expect(command.descendantsOfType("variable_statement").length).toBe(0);
+      expect(command.descendantsOfType("table_row").map((node) => node.text.trim())).toEqual([
+        "lp_u q_1 cond STO",
+        "STO q_1 cond plain",
+        "let q_1 unsi plain",
+      ]);
+      expect(commands[1].descendantsOfType("table_row").map((node) => node.text.trim())).toEqual([
+        "lp_Q q_2 excl",
+      ]);
+      for (const value of ["STO q_1", "let q_1"]) {
+        expect(scopeFor(value, 1)).not.toContain("keyword.control.sofistik");
+      }
+      expect(scopeFor("LC 1", 1)).toContain("keyword.control.sofistik");
     }
-    for (const row of rows) {
-      const value = row.namedChildren.at(-1);
-      expect(scopeForNode(value, 1)).not.toContain("keyword.control.sofistik");
-      expect(scopeForNode(value, 1)).not.toContain("entity.name.function.sofistik");
-    }
-    for (const value of ["STO q_1", "let q_1"]) {
-      expect(scopeFor(value, 1)).not.toContain("keyword.control.sofistik");
-    }
-    expect(scopeFor("LC 1", 1)).toContain("keyword.control.sofistik");
   });
 
   it("recognizes commands, control, preprocessing, and CDB statements after tables", async () => {
@@ -225,6 +237,9 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
       expect(scopeFor(argument, 1)).toContain("string.other.sofistik");
     }
     expect(scopeFor("STO#remaining", 1)).toContain("keyword.control.sofistik");
+    const statement = root.descendantsOfType("variable_statement")[0];
+    expect(statement.parent.id).toBe(command.parent.id);
+    expect(command.endIndex).toBeLessThanOrEqual(statement.startIndex);
   });
 
   it("preserves variable highlighting when an ACT header becomes and stops being tabular", async () => {
@@ -240,14 +255,53 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
         ],
         header,
       );
-      await expectNoSyntaxError();
+      await languageMode.atTransactionEnd();
       const root = rootNode();
       const isTable = header === "ACT TYPE PART SUP";
+      if (isTable) expectOrphanRowError(4);
+      else await expectNoSyntaxError();
       expect(root.descendantsOfType("table_definition").length).toBe(isTable ? 1 : 0);
-      expect(root.descendantsOfType("table_row").length).toBe(isTable ? 2 : 0);
+      expect(root.descendantsOfType("table_row").length).toBe(isTable ? 1 : 0);
+      if (isTable) {
+        const command = root.descendantsOfType("command")[0];
+        const statement = root.descendantsOfType("variable_statement")[0];
+        expect(statement.parent.id).toBe(command.parent.id);
+        expect(command.endIndex).toBeLessThanOrEqual(statement.startIndex);
+      }
       expect(root.descendantsOfType("variable_keyword").map((node) => node.text)).toEqual(["STO"]);
       expect(scopeFor("STO#saved", 1)).toContain("keyword.control.sofistik");
       expect(scopeFor("#saved", 1)).toContain("variable.other.sofistik");
+    }
+  });
+
+  it("updates table boundaries after inserting and removing a variable statement", async () => {
+    await setUp("+PROG SOFILOAD\nACT TYPE PART SUP\n    lp_u q_1 cond\n    lp_x q_1 unsi\nEND\n");
+    const buffer = editor.getBuffer();
+    for (const keyword of ["STO#saved 1", "LET #saved 1"]) {
+      buffer.insert([3, 0], keyword + "\n");
+      await languageMode.atTransactionEnd();
+      let root = rootNode();
+      expectOrphanRowError(4);
+      const command = root.descendantsOfType("command")[0];
+      const statement = root.descendantsOfType("variable_statement")[0];
+      expect(root.descendantsOfType("table_row").length).toBe(1);
+      expect(statement.parent.id).toBe(command.parent.id);
+      expect(command.endIndex).toBeLessThanOrEqual(statement.startIndex);
+      expect(scopeFor(keyword, 1)).toContain("keyword.control.sofistik");
+      expect(scopeFor("lp_x", 1)).not.toContain("keyword.control.sofistik");
+      expect(scopeFor("lp_x", 1)).not.toContain("entity.name.function.sofistik");
+
+      buffer.delete([
+        [3, 0],
+        [4, 0],
+      ]);
+      await expectNoSyntaxError();
+      root = rootNode();
+      expect(root.descendantsOfType("table_row").map((node) => node.text.trim())).toEqual([
+        "lp_u q_1 cond",
+        "lp_x q_1 unsi",
+      ]);
+      expect(root.descendantsOfType("variable_statement").length).toBe(0);
     }
   });
 
