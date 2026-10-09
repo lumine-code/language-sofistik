@@ -80,6 +80,32 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     await lumine.packages.activatePackage("language-sofistik");
   });
 
+  it("highlights continuation markers on every line of a module-free include fragment", async () => {
+    const source = "del#n2s ; sto#n2s 0 $$\n0 $$\n0 $$\n0 $$\n";
+    await setUp(source);
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("program").length).toBe(0);
+    const markers = rootNode().descendantsOfType(["comment", "continuation"]);
+    expect(markers.map((node) => node.text)).toEqual(["$$", "$$", "$$", "$$"]);
+    for (const marker of markers) {
+      expect(scopeForNode(marker)).toContain("comment.line.sofistik");
+      expect(scopeForNode(marker, 1)).toContain("comment.line.sofistik");
+    }
+
+    editor.getBuffer().setTextInRange(
+      [
+        [1, 2],
+        [1, 4],
+      ],
+      "$ comment",
+    );
+    await expectNoSyntaxError();
+    expect(scopeFor("$ comment")).toContain("comment.line.sofistik");
+    for (const marker of rootNode().descendantsOfType(["comment", "continuation"])) {
+      expect(scopeForNode(marker)).toContain("comment.line.sofistik");
+    }
+  });
+
   it("builds nested program, command, record, and item nodes", async () => {
     await setUp("+PROG SOFIMSHA\nNODE 1 X 0 Y 0\n  2 X 1 Y 0\nEND\n");
 
