@@ -18,6 +18,8 @@ Variable statements such as `STO#value 1` and `LET #value 2` end the active tabl
 - **Language coverage**: recognizes English and German CADINP vocabulary from supported SOFiSTiK releases.
 - **Snippets**: `prog` snippet scaffolds a PROG block with HEAD and END.
 
+![SOFiSTiK syntax highlighting at the default editor font size.](.github/demo.png)
+
 ## Installation
 
 To install `language-sofistik` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/language-sofistik`.

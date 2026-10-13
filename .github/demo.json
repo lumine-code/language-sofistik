@@ -1,0 +1,16 @@
+{
+  "title": "language-sofistik",
+  "description": "SOFiSTiK syntax highlighting in the editor.",
+  "recordedOn": "2026-10-13",
+  "sourceRevision": "96f623becff6b4d4b45b7392d518f9d92396e894",
+  "mode": "normal",
+  "fontSettings": "default",
+  "images": [
+    {
+      "file": "demo.png",
+      "label": "SOFiSTiK syntax highlighting at the default editor font size.",
+      "width": 1100,
+      "height": 820
+    }
+  ]
+}
