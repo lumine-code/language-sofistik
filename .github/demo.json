@@ -1,16 +1,61 @@
 {
   "title": "language-sofistik",
-  "description": "SOFiSTiK syntax highlighting in the editor.",
-  "recordedOn": "2026-10-13",
-  "sourceRevision": "96f623becff6b4d4b45b7392d518f9d92396e894",
+  "description": "SOFiSTiK syntax highlighting at the default editor font size.",
+  "recordedOn": "2026-10-14",
+  "sourceRevision": "d286c803d5cb92c415d206145fa26784d53f2906",
+  "themeSourceRevision": "14a69683b0e3238e2bc128fbfae3866c1e4ee9c6",
   "mode": "normal",
   "fontSettings": "default",
+  "scenario": "demo.js",
+  "recipeHash": "333c374cb2ffffb234f8a609cc64d99cfd15e178c37375d8ce8b2315fe6d3036",
+  "environment": {
+    "platform": "win32",
+    "arch": "x64",
+    "electron": "44.7.0",
+    "chrome": "152.0.7977.130",
+    "devicePixelRatio": 1,
+    "locale": "en-GB",
+    "fontFamily": "Fira Code, Menlo, DejaVu Sans Mono, Consolas, monospace",
+    "fontSize": 14,
+    "themes": ["one-day-syntax", "one-day-ui"]
+  },
+  "viewport": { "width": 1100, "height": 820 },
+  "cornerRadius": 10,
+  "sources": {
+    "editor": {
+      "revision": "0362a9fac7d6e153a768c0381800d6f3eb06647a",
+      "dirty": true,
+      "workingTreeHash": "1d75658a8b7d55a69c806a3786c562863bb9d5c71cbf96b3084c6a78c0d648b4"
+    },
+    "package": {
+      "revision": "d286c803d5cb92c415d206145fa26784d53f2906",
+      "dirty": true,
+      "workingTreeHash": "47957db96ab29d24089c261a99210cd3c961754af17f02118adeb7fb98d634bb"
+    },
+    "language-sofistik": {
+      "revision": "d286c803d5cb92c415d206145fa26784d53f2906",
+      "dirty": true,
+      "workingTreeHash": "47957db96ab29d24089c261a99210cd3c961754af17f02118adeb7fb98d634bb"
+    },
+    "one-theme": {
+      "revision": "14a69683b0e3238e2bc128fbfae3866c1e4ee9c6",
+      "dirty": true,
+      "workingTreeHash": "50ec2f83a6347dd8113870992ec4eb2be4014f3d9e12213c2f51b543f1eca793"
+    }
+  },
+  "fixtures": [
+    {
+      "file": "example.dat",
+      "sha256": "deeb300b5fb14cc02ca924219ac04cb033dbc1126cee641220b408b37d25aef9"
+    }
+  ],
   "images": [
     {
       "file": "demo.png",
       "label": "SOFiSTiK syntax highlighting at the default editor font size.",
       "width": 1100,
-      "height": 820
+      "height": 820,
+      "sha256": "d1c3f967a5810247b6c736aacc7ab2ef2f61f2511658ab7021e179d3f1c9c8ba"
     }
   ]
 }
