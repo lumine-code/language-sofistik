@@ -4,7 +4,7 @@ Syntax highlighting for SOFiSTiK structural analysis software.
 
 Provides a Tree-sitter input grammar for SOFiSTiK CADINP files. The central `language-log` package supplies the output grammar.
 
-Variable statements such as `STO#value 1` and `LET #value 2` end the active table and retain their keyword highlighting. A new explicit header starts another table. `#INCLUDE` and `#UNDEF` directives can appear between table rows.
+Variable statements such as `STO#value 1` and `LET #value 2` end the active table and retain their keyword highlighting. A new explicit header starts another table. `#INCLUDE` and `#UNDEF` directives can appear between table rows. Legacy `$BLOCK BEG1`, `$BLOCK END1` and `$BLOCK SET1` directives use preprocessor highlighting.
 
 `SYS` command text and `APPLY` filenames use string highlighting, with `$(...)` macros highlighted inside them. The whole `SYS` command line is literal text, including shell punctuation and dollar signs; `APPLY` still permits a trailing CADINP comment.
 

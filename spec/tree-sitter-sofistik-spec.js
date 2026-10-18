@@ -440,6 +440,51 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
+  it("highlights legacy BLOCK directives while preserving table rows and trailing comments", async () => {
+    await setUp(
+      "+PROG ASE\n" +
+        "$BLOCK BEG1\nLET#1 5\n$BLOCK END1\n" +
+        "GRP NO FACS\n1 1.0\n  $block set1 $ reuse saved input\n2 0.5\nEND\n",
+    );
+
+    await expectNoSyntaxError();
+    const directives = rootNode().descendantsOfType("preprocessor_directive");
+    expect(directives.length).toBe(3);
+    for (const directive of directives) {
+      const keyword = directive.childForFieldName("keyword");
+      const argument = directive.childForFieldName("argument");
+      expect(keyword.text.toUpperCase()).toBe("$BLOCK");
+      expect(scopeForNode(keyword, 1)).toContain("entity.name.section.sofistik");
+      expect(scopeForNode(keyword, 1)).not.toContain("comment.line.sofistik");
+      expect(scopeForNode(argument, 1)).toContain("string.other.sofistik");
+      expect(scopeForNode(argument, 1)).not.toContain("comment.line.sofistik");
+    }
+    expect(scopeFor("$ reuse saved input", 2)).toContain("comment.line.sofistik");
+    const group = rootNode()
+      .descendantsOfType("command")
+      .find((node) => node.childForFieldName("name").text === "GRP");
+    expect(group.descendantsOfType("table_row").map((node) => node.text.trim())).toEqual([
+      "1 1.0",
+      "2 0.5",
+    ]);
+  });
+
+  it("keeps ordinary dollar comments and BLOCK-like command text separate from directives", async () => {
+    await setUp(
+      "$BLOCK note\n$BLOCK SETname\n$BLOCK SET1extra\n$ BLOCK SET1\n" +
+        "+SYS echo $BLOCK SET1\n+PROG TEMPLATE\nHEAD '$BLOCK SET1'\nEND\n",
+    );
+
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("preprocessor_directive").length).toBe(0);
+    expect(scopeFor("$BLOCK note", 1)).toContain("comment.line.sofistik");
+    expect(scopeFor("$BLOCK SETname", 1)).toContain("comment.line.sofistik");
+    expect(scopeFor("$BLOCK SET1extra", 1)).toContain("comment.line.sofistik");
+    expect(scopeFor("$ BLOCK SET1", 1)).toContain("comment.line.sofistik");
+    expect(scopeFor("echo $BLOCK", 6)).toContain("string.unquoted.sofistik");
+    expect(scopeFor("'$BLOCK SET1'", 2)).toContain("string.single.sofistik");
+  });
+
   it("treats program options as comments and enum-like values as plain text", async () => {
     await setUp("+PROG TENDON URS:9\nAXES VAL3 11 KIND QUAD\nAXES VAL3 12 quad\nEND\n");
 

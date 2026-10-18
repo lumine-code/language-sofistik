@@ -54,6 +54,25 @@ describe("SOFiPLUS include grammars", () => {
         editor.destroy();
       }
     });
+
+    it(`highlights legacy BLOCK directives without losing the ${filename} module`, async () => {
+      const editor = await setUp(
+        filename,
+        `$BLOCK BEG1\n$BLOCK END1\n$BLOCK SET1 $ reuse\n${record}\n`,
+      );
+      const root = rootNode(editor);
+      expect(root.hasError).toBe(false);
+      expect(root.descendantsOfType("preprocessor_directive").length).toBe(3);
+      expect(root.descendantsOfType("command_name").map((node) => node.text)).toEqual([command]);
+      expect(scopesAt(editor, "$BLOCK", 1)).toContain("entity.name.section.sofistik");
+      expect(scopesAt(editor, "$BLOCK", 1)).not.toContain("comment.line.sofistik");
+      for (const name of ["BEG1", "END1", "SET1"])
+        expect(scopesAt(editor, name, 1)).toContain("string.other.sofistik");
+      expect(scopesAt(editor, "$ reuse", 1)).toContain("comment.line.sofistik");
+      expect(scopesAt(editor, command)).toContain("keyword.control.sofistik");
+      expect(scopesAt(editor, ` ${item} `, 1)).toContain("entity.name.function.sofistik");
+      editor.destroy();
+    });
   }
 
   it("keeps records from another module unhighlighted", async () => {
