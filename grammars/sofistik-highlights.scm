@@ -29,6 +29,11 @@
 ; VALUES
 ; ======
 
+(sys_statement
+  argument: (_) @string.unquoted.sofistik)
+(apply_statement
+  argument: (_) @string.unquoted.sofistik)
+
 (number) @constant.numeric.sofistik
 (number_list) @constant.numeric.sofistik
 (unit) @constant.other.sofistik

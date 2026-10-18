@@ -6,6 +6,8 @@ Provides a Tree-sitter input grammar for SOFiSTiK CADINP files. The central `lan
 
 Variable statements such as `STO#value 1` and `LET #value 2` end the active table and retain their keyword highlighting. A new explicit header starts another table. `#INCLUDE` and `#UNDEF` directives can appear between table rows.
 
+`SYS` command text and `APPLY` filenames use string highlighting, with `$(...)` macros highlighted inside them. The whole `SYS` command line is literal text, including shell punctuation and dollar signs; `APPLY` still permits a trailing CADINP comment.
+
 > **NOTE**: This package is not an official SOFiSTiK product and is not affiliated with or endorsed by SOFiSTiK AG.
 
 ## Features

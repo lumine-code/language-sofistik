@@ -573,6 +573,41 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("$(project)", 2)).toContain("variable.other.sofistik");
   });
 
+  it("highlights SYS command text without interpreting shell characters as CADINP", async () => {
+    await setUp(
+      "$ Clean file folder:\n" +
+        "+sys del $(project).$d?\n" +
+        "*SYS echo NODE 123 #shell !literal //literal; echo done\n",
+    );
+
+    await expectNoSyntaxError();
+    expect(rootNode().descendantsOfType("sys_statement").length).toBe(2);
+    expect(
+      rootNode()
+        .descendantsOfType("comment")
+        .map((node) => node.text),
+    ).toEqual(["$ Clean file folder:"]);
+    for (const text of ["del", "$d?", "NODE", "123", "#shell", "!literal", "//literal", "done"]) {
+      const scope = scopeFor(text);
+      expect(scope).toContain("string.unquoted.sofistik");
+      expect(scope).not.toContain("comment.line.sofistik");
+      expect(scope).not.toContain("constant.numeric.sofistik");
+    }
+    expect(scopeFor("+sys", 1)).toContain("support.class.sofistik");
+    expect(scopeFor("*SYS", 1)).toContain("support.class.sofistik");
+    expect(scopeFor("$(project)", 2)).toContain("variable.other.sofistik");
+  });
+
+  it("highlights an unquoted APPLY filename while retaining its trailing comment", async () => {
+    await setUp("+APPLY $(project)_csm.dat $ generated input\n");
+
+    await expectNoSyntaxError();
+    expect(scopeFor("+APPLY", 1)).toContain("support.class.sofistik");
+    expect(scopeFor("_csm.dat")).toContain("string.unquoted.sofistik");
+    expect(scopeFor("$(project)", 2)).toContain("variable.other.sofistik");
+    expect(scopeFor("$ generated input", 1)).toContain("comment.line.sofistik");
+  });
+
   it("highlights dollar variables but not hash syntax inside strings", async () => {
     await setUp(
       "+PROG ASE\n" +
