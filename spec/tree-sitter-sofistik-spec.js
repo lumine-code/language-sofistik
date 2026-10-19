@@ -1330,7 +1330,8 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     const program = root.descendantsOfType("program")[0];
     const pictures = root.descendantsOfType("picture_block");
     expect(pictures.length).toBe(2);
-    expect(pictures[0].parent.type).toBe("input_block");
+    expect(pictures[0].parent.type).toBe("program_body_group");
+    expect(pictures[0].parent.parent.type).toBe("input_block");
     expect(
       program
         .childrenForFieldName("tail")
