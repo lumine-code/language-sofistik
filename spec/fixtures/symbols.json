@@ -1,0 +1,27 @@
+{
+  "source.sofistik.include.aqua": {
+    "text": "$ include fragment\nCONC NO 1 FC 30\n",
+    "symbols": [{ "name": "CONC", "tag": "method", "row": 1 }],
+    "only": true
+  },
+  "source.sofistik.include.decreator": {
+    "text": "$ include fragment\nDSLN NO 1 NCS 1\n",
+    "symbols": [{ "name": "DSLN", "tag": "method", "row": 1 }],
+    "only": true
+  },
+  "source.sofistik.include.sofiload": {
+    "text": "$ include fragment\nLC NO 1 FACT 1\n",
+    "symbols": [{ "name": "LC", "tag": "method", "row": 1 }],
+    "only": true
+  },
+  "source.sofistik.include.sofimshc": {
+    "text": "$ include fragment\nSPT NO 1 X 0 Y 0\n",
+    "symbols": [{ "name": "SPT", "tag": "method", "row": 1 }],
+    "only": true
+  },
+  "source.sofistik.include.tendon": {
+    "text": "$ include fragment\nPTUV TYPE RE X 0 U 0\n",
+    "symbols": [{ "name": "PTUV", "tag": "method", "row": 1 }],
+    "only": true
+  }
+}
