@@ -9,7 +9,7 @@
   },
   "treeSitter": {
     "parserSource": "github:lumine-code/tree-sitter-sofistik/include/tendon#480f8abb7e3817e5cadf0dca93c6666050ae72f0",
-    "wasmBuildTool": "tree-sitter-cli#v0.27.0",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.1",
     "grammar": "sofistik-tendon.wasm",
     "highlightsQuery": "sofistik-highlights.scm",
     "foldsQuery": "sofistik-folds.scm",
