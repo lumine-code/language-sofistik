@@ -6,7 +6,7 @@
 [(sys_sigil)
  (apply_sigil)] @support.class.sofistik
 (module_name) @support.class.sofistik
-(program_option) @comment.line.sofistik
+(program_option) @comment.other.sofistik
 (command_name) @keyword.control.sofistik
 (item_name) @entity.name.function.sofistik
 ";" @punctuation.terminator.record.sofistik
