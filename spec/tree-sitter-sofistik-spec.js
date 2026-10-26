@@ -491,7 +491,7 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     await expectNoSyntaxError();
     expect(scopeFor("+PROG", 1)).toContain("support.class.sofistik");
     expect(scopeFor("TENDON", 1)).toContain("support.class.sofistik");
-    expect(scopeFor("URS:9", 1)).toContain("comment.line.sofistik");
+    expect(scopeFor("URS:9", 1)).toContain("comment.other.sofistik");
     for (const value of ["QUAD", "quad"]) {
       expect(scopeFor(value, 1)).not.toContain("constant.other.sofistik");
     }
