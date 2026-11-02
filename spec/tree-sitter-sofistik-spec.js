@@ -106,6 +106,105 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     }
   });
 
+  it("highlights headerless load-case strings independently of trailing comments", async () => {
+    const records = [
+      "LC 50010 TYPE \"G_1 \" CST 10 REF 'PART' SUP PERM",
+      "LC 50011 TYPE \"P_0 \" CST 11 REF 'PART' SUP PERM $ prestress",
+      "LC 50012 TYPE \"C_1 \" CST 12 REF 'PART' SUP PERM ! permanent",
+      "LC 50013 TYPE \"$ ! // #literal\" REF 'plain $ ! // #value'",
+    ];
+    for (const newline of ["\n", "\r\n"]) {
+      for (const finalNewline of ["", newline]) {
+        await setUp(records.join(newline) + finalNewline);
+        await expectNoSyntaxError();
+        const root = rootNode();
+        expect(root.descendantsOfType("program").length).toBe(0);
+        expect(root.descendantsOfType("module_name").length).toBe(0);
+        expect(root.descendantsOfType("command_name").length).toBe(0);
+        expect(root.descendantsOfType("invalid_command").length).toBe(0);
+        expect(root.descendantsOfType("ignored_text").length).toBe(0);
+        expect(root.descendantsOfType("unscoped_record").length).toBe(4);
+        const strings = root.descendantsOfType("string");
+        expect(strings.map((node) => node.text)).toEqual([
+          '"G_1 "',
+          "'PART'",
+          '"P_0 "',
+          "'PART'",
+          '"C_1 "',
+          "'PART'",
+          '"$ ! // #literal"',
+          "'plain $ ! // #value'",
+        ]);
+        for (const string of strings) {
+          const scope = string.text.startsWith('"')
+            ? "string.double.sofistik"
+            : "string.single.sofistik";
+          for (const offset of [0, 1, string.text.length - 1]) {
+            expect(scopeForNode(string, offset)).toContain(scope);
+            expect(scopeForNode(string, offset)).not.toContain("comment.line.sofistik");
+          }
+        }
+        expect(root.descendantsOfType("comment").map((node) => node.text)).toEqual([
+          "$ prestress",
+          "! permanent",
+        ]);
+        for (const comment of root.descendantsOfType("comment")) {
+          expect(scopeForNode(comment, 1)).toContain("comment.line.sofistik");
+        }
+      }
+    }
+  });
+
+  it("highlights quoted values at the start of a module-free record", async () => {
+    await setUp("'single $ ! // #literal'; \"double $ ! // #literal\"");
+    await expectNoSyntaxError();
+    const root = rootNode();
+    expect(root.descendantsOfType("unscoped_record").length).toBe(2);
+    expect(root.descendantsOfType("ignored_text").length).toBe(0);
+    expect(root.descendantsOfType("comment").length).toBe(0);
+    expect(root.descendantsOfType("command_name").length).toBe(0);
+    expect(scopeFor("'single", 1)).toContain("string.single.sofistik");
+    expect(scopeFor('"double', 1)).toContain("string.double.sofistik");
+  });
+
+  it("retains headerless string scopes while comments and closing quotes are edited", async () => {
+    const firstRecord = "LC 50010 TYPE \"G_1 \" REF 'PART'";
+    await setUp(firstRecord + " $ comment\nLC 50011 TYPE \"C_1 \" REF 'NEXT'");
+    const buffer = editor.getBuffer();
+    const expectScopes = async () => {
+      await expectNoSyntaxError();
+      expect(rootNode().descendantsOfType("program").length).toBe(0);
+      expect(rootNode().descendantsOfType("command_name").length).toBe(0);
+      expect(scopeFor('"G_1 "', 1)).toContain("string.double.sofistik");
+      expect(scopeFor("'PART", 1)).toContain("string.single.sofistik");
+      expect(scopeFor('"C_1 "', 1)).toContain("string.double.sofistik");
+      expect(scopeFor("'NEXT'", 1)).toContain("string.single.sofistik");
+    };
+    await expectScopes();
+    buffer.delete([
+      [0, firstRecord.length],
+      [0, Infinity],
+    ]);
+    await expectScopes();
+    expect(rootNode().descendantsOfType("comment").length).toBe(0);
+    buffer.delete([
+      [0, firstRecord.length - 1],
+      [0, firstRecord.length],
+    ]);
+    await expectScopes();
+    expect(
+      rootNode()
+        .descendantsOfType("unterminated_single_quoted_string")
+        .map((node) => node.text),
+    ).toEqual(["'PART"]);
+    buffer.insert([0, firstRecord.length - 1], "'");
+    await expectScopes();
+    expect(rootNode().descendantsOfType("unterminated_single_quoted_string").length).toBe(0);
+    buffer.insert([0, firstRecord.length], " $ comment");
+    await expectScopes();
+    expect(scopeFor("$ comment", 1)).toContain("comment.line.sofistik");
+  });
+
   it("builds nested program, command, record, and item nodes", async () => {
     await setUp("+PROG SOFIMSHA\nNODE 1 X 0 Y 0\n  2 X 1 Y 0\nEND\n");
 
