@@ -7,5 +7,10 @@
       "tabType": "soft",
       "tabLength": 2
     }
+  },
+  ".source.sofistik.def": {
+    "editor": {
+      "commentStart": "# "
+    }
   }
 }

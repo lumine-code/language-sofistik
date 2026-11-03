@@ -1,0 +1,19 @@
+{
+  "name": "SOFiSTiK DEF",
+  "scopeName": "source.sofistik.def",
+  "type": "tree-sitter",
+  "parser": "tree-sitter-sofistik-def",
+  "fileTypes": ["sofistik.def"],
+  "comments": {
+    "start": "# "
+  },
+  "treeSitter": {
+    "parserSource": "github:lumine-code/tree-sitter-sofistik/def#64b573365f3ceed16329b6db4d95001e9dc9337f",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.1",
+    "grammar": "sofistik-def.wasm",
+    "highlightsQuery": "sofistik-def-highlights.scm",
+    "foldsQuery": "sofistik-def-folds.scm",
+    "tagsQuery": "sofistik-def-tags.scm",
+    "injectionsQuery": "sofistik-def-injections.scm"
+  }
+}

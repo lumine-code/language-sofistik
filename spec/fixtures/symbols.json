@@ -1,4 +1,12 @@
 {
+  "source.sofistik.def": {
+    "text": "SOFISTIK_C=49\n[STANDARDS]\nDIN_EN1992-2004=DIN_EN199X-200X@@0,@702\n[MAPPING]\n",
+    "symbols": [
+      { "name": "STANDARDS", "tag": "module", "row": 1 },
+      { "name": "MAPPING", "tag": "module", "row": 3 }
+    ],
+    "only": true
+  },
   "source.sofistik.include.aqua": {
     "text": "$ include fragment\nCONC NO 1 FC 30\n",
     "symbols": [{ "name": "CONC", "tag": "method", "row": 1 }],

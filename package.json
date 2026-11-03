@@ -12,6 +12,7 @@
     "fem",
     "dat",
     "include",
+    "def",
     "finite-element",
     "tree-sitter"
   ],
@@ -21,7 +22,8 @@
     "lumine": "^1.0.0"
   },
   "specPackages": [
-    "language-log"
+    "language-log",
+    "snippets"
   ],
   "files": [
     "grammars",

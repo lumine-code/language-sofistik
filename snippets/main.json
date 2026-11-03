@@ -1,5 +1,5 @@
 {
-  ".source.sofistik": {
+  ".source.sofistik:not(.def)": {
     "prog": {
       "prefix": "prog",
       "description": "PROG block with HEAD",

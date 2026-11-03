@@ -2,7 +2,7 @@
 
 Syntax highlighting for SOFiSTiK structural analysis software.
 
-Provides a Tree-sitter input grammar for SOFiSTiK CADINP files. The central `language-log` package supplies the output grammar.
+Provides Tree-sitter grammars for SOFiSTiK CADINP files and `sofistik.def` configuration files. The central `language-log` package supplies the output grammar.
 
 Variable statements such as `STO#value 1` and `LET #value 2` end the active table and retain their keyword highlighting. A new explicit header starts another table. `#INCLUDE` and `#UNDEF` directives can appear between table rows. Legacy `$BLOCK BEG1`, `$BLOCK END1` and `$BLOCK SET1` directives use preprocessor highlighting.
 
@@ -14,6 +14,7 @@ Variable statements such as `STO#value 1` and `LET #value 2` end the active tabl
 
 - **Grammars**: provides Tree-sitter grammars for SOFiSTiK input files.
 - **Syntax highlighting**: supports `.dat`, `.gra`, `.grb`, `.results` and `.include` input files.
+- **DEF configuration**: highlights keys, values, sections and description lines in `sofistik.def` files.
 - **Include context**: selects the SOFiPLUS module vocabulary from the include filename without requiring a PROG header.
 - **Structure**: provides folding and outline symbols for programs, commands and control blocks.
 - **Output file support**: the central `language-log` package provides the grammar for `.erg`, `.lst`, `.prt` and `.urs` files.
@@ -39,6 +40,12 @@ The [SOFiPLUS include filenames](https://docs.sofistik.com/2025/en/sofiplus/work
 | `spt.include`, `tnd.include` | TENDON    |
 
 Names are matched without regard to case. The file remains a fragment: no PROG header or END record is added. An explicit `+PROG` or `$PROG` header selects its own module. Other `.include` files use the ordinary CADINP grammar and can declare their context with `$PROG`. SOFiPLUS expects include input in English.
+
+## DEF configuration
+
+The `sofistik.def` grammar follows the SOFiSTiK definition reader described in the [DEF and environment variable documentation](https://docs.sofistik.com/2026/en/fea/basic/def_env_variable.html): the first `=` separates a key from its literal value. Prefer `KEY=value`: spaces before `=` belong to the key, and spaces after it belong to the value. Values preserve paths, commas, semicolons, dollar signs, hash characters and additional equals signs.
+
+Lines without `=` are ignored descriptions, conventionally prefixed with `#`. A hash-prefixed line containing `=` is still an assignment with a literal hash in its key. `[section]` headers support folding and outline symbols. Filename matching is case-insensitive; other `.def` files are not assigned this grammar automatically.
 
 ## Contributing
 
