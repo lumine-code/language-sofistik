@@ -3,6 +3,27 @@ Source: https://github.com/lumine-code/tree-sitter-sofistik
 Commit: 64b573365f3ceed16329b6db4d95001e9dc9337f
 Ref: 64b573365f3ceed16329b6db4d95001e9dc9337f
 
+Parser source: github:lumine-code/tree-sitter-sofistik/include/aqua#74773d520e360ca2f5e8fb9317536ff08c918dd0
+Resolved commit: 74773d520e360ca2f5e8fb9317536ff08c918dd0
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/decreator#74773d520e360ca2f5e8fb9317536ff08c918dd0
+Resolved commit: 74773d520e360ca2f5e8fb9317536ff08c918dd0
+
+Parser source: github:lumine-code/tree-sitter-sofistik/def#64b573365f3ceed16329b6db4d95001e9dc9337f
+Resolved commit: 64b573365f3ceed16329b6db4d95001e9dc9337f
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/sofiload#74773d520e360ca2f5e8fb9317536ff08c918dd0
+Resolved commit: 74773d520e360ca2f5e8fb9317536ff08c918dd0
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/sofimshc#74773d520e360ca2f5e8fb9317536ff08c918dd0
+Resolved commit: 74773d520e360ca2f5e8fb9317536ff08c918dd0
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/tendon#74773d520e360ca2f5e8fb9317536ff08c918dd0
+Resolved commit: 74773d520e360ca2f5e8fb9317536ff08c918dd0
+
+Parser source: github:lumine-code/tree-sitter-sofistik#74773d520e360ca2f5e8fb9317536ff08c918dd0
+Resolved commit: 74773d520e360ca2f5e8fb9317536ff08c918dd0
+
 Original file: LICENSE
 
 MIT License

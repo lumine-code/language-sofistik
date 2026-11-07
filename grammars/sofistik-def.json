@@ -9,7 +9,7 @@
   },
   "treeSitter": {
     "parserSource": "github:lumine-code/tree-sitter-sofistik/def#64b573365f3ceed16329b6db4d95001e9dc9337f",
-    "wasmBuildTool": "tree-sitter-cli#v0.27.1",
+    "wasmBuildTool": "tree-sitter-cli#v0.27.2",
     "grammar": "sofistik-def.wasm",
     "highlightsQuery": "sofistik-def-highlights.scm",
     "foldsQuery": "sofistik-def-folds.scm",
