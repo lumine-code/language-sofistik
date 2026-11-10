@@ -916,6 +916,87 @@ describe("SOFiSTiK Tree-sitter grammar", () => {
     expect(scopeFor("! note", 1)).toContain("comment.line.sofistik");
   });
 
+  it("ends empty inline DEFINE values before following directives and records", async () => {
+    const records = [
+      "#define asetxt1 =",
+      "#define asetxt2 = \t",
+      "#include input.inc",
+      "+PROG TEMPLATE",
+      "#define empty_command =",
+      "STO#saved 1",
+      "END",
+      "#define empty_eof =",
+    ];
+    for (const newline of ["\n", "\r\n"]) {
+      for (const finalNewline of ["", newline]) {
+        await setUp(records.join(newline) + finalNewline);
+        await expectNoSyntaxError();
+        const root = rootNode();
+        const definitions = root.descendantsOfType("preprocessor_define_statement");
+        expect(definitions.map((node) => node.childForFieldName("name").text)).toEqual([
+          "asetxt1",
+          "asetxt2",
+          "empty_command",
+          "empty_eof",
+        ]);
+        for (const definition of definitions) {
+          const value = definition.childForFieldName("value");
+          expect(value.text.trim()).toBe("=");
+          expect(value.startPosition.row).toBe(definition.startPosition.row);
+          expect(value.endPosition.row).toBe(definition.startPosition.row);
+          expect(scopeForNode(definition.childForFieldName("keyword"), 1)).toContain(
+            "entity.name.section.sofistik",
+          );
+          expect(scopeForNode(definition.childForFieldName("name"), 1)).toContain(
+            "string.other.sofistik",
+          );
+        }
+        expect(root.descendantsOfType("program").length).toBe(1);
+        expect(scopeFor("#include", 1)).toContain("entity.name.section.sofistik");
+        expect(scopeFor("input.inc", 1)).toContain("string.other.sofistik");
+        expect(scopeFor("+PROG", 1)).toContain("support.class.sofistik");
+        expect(scopeFor("STO#saved", 1)).toContain("keyword.control.sofistik");
+        expect(scopeFor("#saved", 1)).toContain("variable.other.sofistik");
+      }
+    }
+  });
+
+  it("preserves following scopes when an inline DEFINE value is removed and restored", async () => {
+    const prefix = "#define asetxt1 =";
+    await setUp(`+PROG TEMPLATE\n${prefix} 'initial'\n#define asetxt2 =\nSTO#saved 1\nEND\n`);
+    const buffer = editor.getBuffer();
+    for (const value of ["", " \t", " 'restored'", ""]) {
+      buffer.setTextInRange(
+        [
+          [1, prefix.length],
+          [1, Infinity],
+        ],
+        value,
+      );
+      await expectNoSyntaxError();
+      const definitions = rootNode().descendantsOfType("preprocessor_define_statement");
+      expect(definitions.map((node) => node.childForFieldName("name").text)).toEqual([
+        "asetxt1",
+        "asetxt2",
+      ]);
+      expect(definitions[0].childForFieldName("value").text.trim()).toBe(`=${value}`.trim());
+      expect(definitions[1].childForFieldName("value").text.trim()).toBe("=");
+      for (const definition of definitions) {
+        expect(scopeForNode(definition.childForFieldName("keyword"), 1)).toContain(
+          "entity.name.section.sofistik",
+        );
+        expect(scopeForNode(definition.childForFieldName("name"), 1)).toContain(
+          "string.other.sofistik",
+        );
+      }
+      expect(scopeFor("STO#saved", 1)).toContain("keyword.control.sofistik");
+      expect(scopeFor("#saved", 1)).toContain("variable.other.sofistik");
+      if (value.includes("restored")) {
+        expect(scopeFor("'restored'", 1)).toContain("string.single.sofistik");
+      }
+    }
+  });
+
   it("highlights dotted DEFINE names without extending STO or LET variables", async () => {
     await setUp(
       "#define ella-dyn-t.1-1=1.291354058607521\n" +
