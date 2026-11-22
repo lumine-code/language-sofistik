@@ -42,6 +42,27 @@ Resolved commit: 32c50f0f83e6ea016081a98506f9cb005b12c9f8
 Parser source: github:lumine-code/tree-sitter-sofistik/include/tendon#32c50f0f83e6ea016081a98506f9cb005b12c9f8
 Resolved commit: 32c50f0f83e6ea016081a98506f9cb005b12c9f8
 
+Parser source: github:lumine-code/tree-sitter-sofistik/include/aqua#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/decreator#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
+Parser source: github:lumine-code/tree-sitter-sofistik/def#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/sofiload#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/sofimshc#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
+Parser source: github:lumine-code/tree-sitter-sofistik/include/tendon#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
+Parser source: github:lumine-code/tree-sitter-sofistik#ccf88a37fbcbf2e440c13a8144e16e9625707be5
+Resolved commit: ccf88a37fbcbf2e440c13a8144e16e9625707be5
+
 Original file: LICENSE
 
 MIT License
