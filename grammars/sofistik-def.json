@@ -13,6 +13,7 @@
     "grammar": "sofistik-def.wasm",
     "highlightsQuery": "sofistik-def-highlights.scm",
     "foldsQuery": "sofistik-def-folds.scm",
+    "tagsQuerySupportsLocalPath": true,
     "tagsQuery": "sofistik-def-tags.scm",
     "injectionsQuery": "sofistik-def-injections.scm"
   }
